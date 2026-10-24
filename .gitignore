@@ -1,0 +1,89 @@
+
+# ==========================================
+# Environment variables and secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+
+# ==========================================
+# Dependencies and package managers
+# ==========================================
+node_modules/
+vendor/
+
+# ==========================================
+# Build output and generated files
+# ==========================================
+dist/
+build/
+out/
+coverage/
+*.log
+logs/
+
+# ==========================================
+# Caches and temporary files
+# ==========================================
+.cache/
+.tmp/
+temp/
+tmp/
+*.tmp
+*.temp
+
+# ==========================================
+# Operating system files
+# ==========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/
+
+# ==========================================
+# Editors and IDEs
+# ==========================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ==========================================
+# Local databases and database artifacts
+# ==========================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-journal
+
+# ==========================================
+# Test artifacts and reports
+# ==========================================
+.nyc_output/
+playwright-report/
+test-results/
+
+# ==========================================
+# Local application data and uploads
+# ==========================================
+uploads/
+user-uploads/
+storage/
+data/
+
+# ==========================================
+# Local development configuration
+# ==========================================
+.local/
