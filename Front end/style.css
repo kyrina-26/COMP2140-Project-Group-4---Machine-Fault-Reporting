@@ -1,0 +1,224 @@
+
+
+/* GENERAL STYLING */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+}
+
+/* MAIN CONTAINER */
+.login-container {
+    display: flex;
+    min-height: 100vh;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    align-items: center;
+    justify-content: space-between;
+    padding: 45px 6%;
+    background: linear-gradient(
+        135deg,
+        #087443,
+        #198754
+    );
+}
+
+/* FACTORY IMAGE SECTION */
+.factory-section {
+    position: absolute;
+    inset: 0;
+    background-image: url("Images/factory-maintenance.png");
+    background-size: cover;
+    background-position: center;
+    z-index: 0;
+}
+
+/* IMAGE OVERLAY */
+.image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        rgba(0, 80, 40, 0.12),
+        rgba(0, 0, 0, 0.05)
+    );
+}
+
+/* LOGIN CARD */
+.login-card {
+    position: relative;
+    z-index: 2;
+    background-color: white;
+    width: 520px;
+    max-width: 48%;
+    padding: 45px;
+    border-radius: 28px;
+
+    margin-left: auto;
+    margin-right: 2%;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.25);
+
+    text-align: center;
+}
+
+/* LOGO */
+.logo {
+    font-size: 65px;
+    margin-bottom: 10px;
+}
+
+/* MAIN HEADING */
+h1 {
+    color: #075c35;
+    font-size: 30px;
+    margin-bottom: 8px;
+    line-height: 1.25;
+}
+
+/* SUBHEADING */
+h2 {
+    color: #F28C28;
+    font-size: 21px;
+    font-weight: normal;
+    -webkit-text-stroke: 0.5px #d66c12;
+    
+}
+
+/* ORANGE DIVIDER */
+.orange-line {
+    width: 180px;
+    height: 6px;
+
+    background: linear-gradient(
+        to right,
+        #F28C28,
+        #ffb347
+    );
+
+    border-radius: 10px;
+    margin: 32px auto;
+}
+
+/* FORM LABELS */
+label {
+    display: block;
+    text-align: left;
+    color: #075c35;
+    font-weight: bold;
+    font-size: 17px;
+    margin-bottom: 9px;
+}
+
+/* INPUT GROUP */
+.input-group {
+    display: flex;
+    align-items: center;
+    border: 2px solid #198754;
+    border-radius: 12px;
+    padding: 0 15px;
+    margin-bottom: 25px;
+    background-color: #fff;
+    transition: 0.3s;
+}
+
+.input-group span {
+    font-size: 22px;
+    margin-right: 12px;
+}
+
+/* INPUT FIELDS */
+.input-group input {
+    width: 100%;
+    padding: 15px 0;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    background: transparent;
+}
+
+.input-group:focus-within {
+    border-color: #F28C28;
+    box-shadow: 0 0 8px rgba(242, 140, 40, 0.25);
+}
+
+/* LOGIN BUTTON */
+button {
+    width: 100%;
+    padding: 17px;
+
+    background: linear-gradient(
+        90deg,
+        #087443,
+        #198754
+    );
+
+    color: white;
+    border: none;
+    border-radius: 12px;
+
+    font-size: 20px;
+    font-weight: bold;
+
+    cursor: pointer;
+    transition: 0.3s;
+
+    box-shadow: 0 6px 15px rgba(8, 116, 67, 0.2);
+}
+
+/* BUTTON HOVER */
+button:hover {
+    background: linear-gradient(
+        90deg,
+        #F28C28,
+        #ffad4d
+    );
+
+    transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(242, 140, 40, 0.3);
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 900px) {
+
+    .login-container {
+        justify-content: center;
+        padding: 25px;
+    }
+
+    .login-card {
+        max-width: 100%;
+        width: 480px;
+    }
+
+    .factory-section {
+        background-position: center;
+    }
+}
+
+@media (max-width: 500px) {
+
+    .login-card {
+        padding: 30px 22px;
+    }
+
+    h1 {
+        font-size: 23px;
+    }
+
+    h2 {
+        font-size: 17px;
+    }
+
+    .logo {
+        font-size: 50px;
+    }
+}
+

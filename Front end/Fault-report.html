@@ -1,0 +1,159 @@
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Report Machine Fault</title>
+
+    <link rel="stylesheet" href="fault-report.css">
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <h1>Machine Fault Reporting</h1>
+        <p>Maintenance Response System</p>
+    </header>
+
+    <!-- MAIN REPORT CONTAINER -->
+    <main class="report-container">
+
+        <h2>Report a Machine Fault</h2>
+
+        <p class="intro">
+            Identify the machine and provide details about the problem.
+        </p>
+
+        <form id="faultReportForm">
+
+            <!-- MACHINE IDENTIFICATION -->
+            <section class="section qr-section">
+
+                <h3>1. Identify Machine</h3>
+
+                <p>Scan the machine QR code or enter its code manually.</p>
+
+                <!-- QR SCANNER -->
+                <div id="qr-reader"></div>
+
+                <button type="button"
+                        class="scan-button"
+                        id="scanButton">
+                    ▦ Scan QR Code
+                </button>
+
+                <p id="scanStatus">
+                    Scan the QR code attached to the machine.
+                </p>
+
+                <!-- DIVIDER -->
+                <div class="divider">
+                    <span>OR</span>
+                </div>
+
+                <!-- MANUAL MACHINE CODE -->
+                <label for="machineCode">
+                    Enter Machine Code
+                </label>
+
+                <input
+                    type="text"
+                    id="machineCode"
+                    name="machineCode"
+                    placeholder="e.g. MACH-001"
+                    required
+                >
+
+                <p class="input-hint">
+                    Enter the identification code displayed on the machine.
+                </p>
+
+            </section>
+
+            <!-- FAULT DESCRIPTION -->
+            <section class="section">
+
+                <h3>2. Describe the Fault</h3>
+
+                <label for="description">
+                    Fault Description
+                </label>
+
+                <textarea
+                    id="description"
+                    name="description"
+                    rows="5"
+                    placeholder="Describe the machine problem..."
+                    required
+                ></textarea>
+
+            </section>
+
+            <!-- EVIDENCE UPLOAD -->
+            <section class="section">
+
+                <h3>3. Attach Evidence</h3>
+
+                <p>
+                    Choose the type of evidence you want to attach.
+                </p>
+
+                <div class="upload-grid">
+
+                    <!-- PICTURE -->
+                    <label class="upload-card">
+                        <span>📷</span>
+                        <strong>Picture</strong>
+
+                        <input
+                            type="file"
+                            name="pictures"
+                            accept="image/*"
+                            multiple
+                        >
+                    </label>
+
+                    <!-- AUDIO -->
+                    <label class="upload-card">
+                        <span>🎤</span>
+                        <strong>Audio</strong>
+
+                        <input
+                            type="file"
+                            name="audio"
+                            accept="audio/*"
+                        >
+                    </label>
+
+                    <!-- VIDEO -->
+                    <label class="upload-card">
+                        <span>🎥</span>
+                        <strong>Video</strong>
+
+                        <input
+                            type="file"
+                            name="video"
+                            accept="video/*"
+                        >
+                    </label>
+
+                </div>
+
+            </section>
+
+            <!-- SUBMIT REPORT -->
+            <button type="submit" class="submit-button">
+                Submit Fault Report
+            </button>
+
+        </form>
+
+    </main>
+
+</body>
+</html>

@@ -1,0 +1,172 @@
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f3f8f4;
+    color: #333;
+}
+
+/* HEADER */
+.header {
+    background: linear-gradient(90deg, #087443, #198754);
+    color: white;
+    padding: 25px 40px;
+    border-bottom: 6px solid #F28C28;
+}
+
+.header h1 {
+    font-size: 26px;
+}
+
+.header p {
+    color: #ffbd75;
+    margin-top: 6px;
+}
+
+/* MAIN CONTAINER */
+.report-container {
+    max-width: 850px;
+    margin: 35px auto;
+    padding: 35px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.report-container h2 {
+    color: #087443;
+    margin-bottom: 10px;
+}
+
+.intro {
+    color: #777;
+    margin-bottom: 25px;
+}
+
+/* SECTIONS */
+.section {
+    padding: 22px;
+    margin-bottom: 22px;
+    border: 1px solid #dce9df;
+    border-radius: 12px;
+}
+
+.section h3 {
+    color: #198754;
+    margin-bottom: 18px;
+    border-left: 5px solid #F28C28;
+    padding-left: 12px;
+}
+
+/* QR SECTION */
+.qr-section {
+    background: #f8fcf9;
+    text-align: center;
+}
+
+#qr-reader {
+    width: 100%;
+    max-width: 350px;
+    margin: 15px auto;
+}
+
+.scan-button {
+    background: #F28C28;
+    color: white;
+    border: none;
+    padding: 13px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+#scanStatus {
+    margin: 12px 0;
+    color: #666;
+}
+
+/* INPUTS */
+input[type="text"],
+textarea {
+    width: 100%;
+    padding: 13px;
+    margin-top: 10px;
+    border: 1px solid #198754;
+    border-radius: 7px;
+    font-size: 15px;
+}
+
+textarea {
+    resize: vertical;
+}
+
+/* UPLOAD OPTIONS */
+.upload-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.upload-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 25px 10px;
+    background: #f1f8f3;
+    border: 2px dashed #198754;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #087443;
+    text-align: center;
+}
+
+.upload-card:hover {
+    background: #fff1e2;
+    border-color: #F28C28;
+}
+
+.upload-card span {
+    font-size: 32px;
+}
+
+.upload-card input {
+    width: 100%;
+    font-size: 11px;
+}
+
+/* SUBMIT BUTTON */
+.submit-button {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(90deg, #087443, #198754);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    font-size: 17px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background: #F28C28;
+}
+
+/* MOBILE */
+@media (max-width: 600px) {
+    .report-container {
+        margin: 15px;
+        padding: 20px;
+    }
+
+    .upload-grid {
+        grid-template-columns: 1fr;
+    }
+}
