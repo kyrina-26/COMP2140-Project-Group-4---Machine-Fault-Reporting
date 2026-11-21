@@ -1,0 +1,51 @@
+services:
+  # MySQL database; its named volume keeps records when the container stops.
+  mysql:
+    image: ${MYSQL_IMAGE}
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:${MYSQL_HOST_PORT}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  # Java REST API; Docker compiles it from backend/ before starting it.
+  api:
+    image: ${API_IMAGE}
+    build:
+      context: ./backend
+    environment:
+      PORT: ${API_CONTAINER_PORT}
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      APP_UPLOAD_DIR: ${APP_UPLOAD_DIR}
+      APP_MAX_FILE_SIZE: ${APP_MAX_FILE_SIZE}
+      APP_BOOTSTRAP_ADMIN_USERNAME: ${APP_BOOTSTRAP_ADMIN_USERNAME}
+      APP_BOOTSTRAP_ADMIN_PASSWORD: ${APP_BOOTSTRAP_ADMIN_PASSWORD}
+      APP_BOOTSTRAP_ADMIN_NAME: ${APP_BOOTSTRAP_ADMIN_NAME}
+      APP_BOOTSTRAP_ADMIN_EMAIL: ${APP_BOOTSTRAP_ADMIN_EMAIL}
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS}
+    ports:
+      - "127.0.0.1:${API_HOST_PORT}:${API_CONTAINER_PORT}"
+    volumes:
+      - fault_uploads:${APP_UPLOAD_DIR}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  # Persistent local data stores for database records and uploaded media.
+  mysql_data:
+    name: ${MYSQL_VOLUME_NAME}
+  fault_uploads:
+    name: ${UPLOADS_VOLUME_NAME}

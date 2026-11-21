@@ -1,0 +1,27 @@
+package com.machinefault.api.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.*;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.*;
+import org.springframework.security.web.context.*;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.*;
+import java.util.*;
+
+// Sets up sessions, CSRF protection, role checks, and allowed browser origins.
+@Configuration @EnableMethodSecurity
+public class SecurityConfig {
+ // Hashes passwords before storage and checks them during login.
+ @Bean PasswordEncoder passwordEncoder(){return new BCryptPasswordEncoder();}
+ // Stores the authenticated user's security context in a server-side HTTP session.
+ @Bean SecurityContextRepository securityContextRepository(){return new HttpSessionSecurityContextRepository();}
+ // Basic Auth is disabled; browser requests that change data must include a CSRF token.
+ @Bean SecurityFilterChain securityFilterChain(HttpSecurity http,SecurityContextRepository contexts)throws Exception{return http.csrf(c->c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())).cors(Customizer.withDefaults()).securityContext(c->c.securityContextRepository(contexts)).sessionManagement(s->s.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED)).formLogin(f->f.disable()).httpBasic(b->b.disable()).authorizeHttpRequests(a->a.requestMatchers("/actuator/health","/api/auth/login","/api/auth/csrf").permitAll().anyRequest().authenticated()).build();}
+ // Reads the frontend address list from application settings.
+ @Bean CorsConfigurationSource corsConfigurationSource(@Value("${app.cors.allowed-origins}") String origins){CorsConfiguration c=new CorsConfiguration();c.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).toList());c.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));c.setAllowedHeaders(List.of("Content-Type","X-XSRF-TOKEN"));c.setAllowCredentials(true);UrlBasedCorsConfigurationSource s=new UrlBasedCorsConfigurationSource();s.registerCorsConfiguration("/**",c);return s;}
+}

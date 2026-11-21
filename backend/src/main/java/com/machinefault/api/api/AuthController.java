@@ -1,0 +1,20 @@
+package com.machinefault.api.api;
+
+import com.machinefault.api.api.ApiModels.UserView; import com.machinefault.api.domain.*; import com.machinefault.api.repo.*;
+import jakarta.servlet.http.*; import jakarta.validation.Valid; import jakarta.validation.constraints.*; import org.springframework.http.*; import org.springframework.security.authentication.*; import org.springframework.security.core.Authentication; import org.springframework.security.core.authority.SimpleGrantedAuthority; import org.springframework.security.core.context.*; import org.springframework.security.crypto.password.PasswordEncoder; import org.springframework.security.web.context.SecurityContextRepository; import org.springframework.web.bind.annotation.*; import org.springframework.transaction.annotation.Transactional;
+import java.time.Instant; import java.util.*;
+
+// Login creates a server-side session; later requests identify the user with its session cookie.
+@RestController @RequestMapping("/api/auth")
+public class AuthController {
+ public record LoginRequest(@NotBlank @Size(max=80) String username,@NotBlank @Size(max=100) String password){}
+ public record LoginResponse(UserView user){}
+ private final UserRepository users; private final LoginEventRepository events; private final PasswordEncoder passwords; private final SecurityContextRepository contexts;
+ public AuthController(UserRepository users,LoginEventRepository events,PasswordEncoder passwords,SecurityContextRepository contexts){this.users=users;this.events=events;this.passwords=passwords;this.contexts=contexts;}
+ // Records each attempt and locks an account for 15 minutes after three consecutive failures.
+ @PostMapping("/login") @Transactional public ResponseEntity<?> login(@Valid @RequestBody LoginRequest body,HttpServletRequest request,HttpServletResponse response){String name=body.username().trim();AppUser u=users.findByUsername(name).orElse(null);String ip=clientIp(request);Instant now=Instant.now();if(u==null){events.save(new LoginEvent(null,name,"FAILED",ip));return ResponseEntity.status(401).body(Map.of("error","Invalid username or password."));}if(u.getLockedUntil()!=null&&u.getLockedUntil().isAfter(now)){events.save(new LoginEvent(u,name,"LOCKED",ip));return ResponseEntity.status(423).body(Map.of("error","Account locked after repeated failed logins. Try again after 15 minutes."));}if(!u.isEnabled()||!passwords.matches(body.password(),u.getPasswordHash())){u.recordFailedLogin(now);events.save(new LoginEvent(u,name,"FAILED",ip));return ResponseEntity.status(401).body(Map.of("error","Invalid username or password."));}u.recordSuccessfulLogin();events.save(new LoginEvent(u,name,"SUCCESS",ip));Authentication auth=UsernamePasswordAuthenticationToken.authenticated(u.getUsername(),null,List.of(new SimpleGrantedAuthority(u.getRole().name())));SecurityContext context=SecurityContextHolder.createEmptyContext();context.setAuthentication(auth);SecurityContextHolder.setContext(context);if(request.getSession(false)!=null)request.changeSessionId();contexts.saveContext(context,request,response);request.getSession(true).setMaxInactiveInterval(1800);return ResponseEntity.ok(new LoginResponse(UserView.of(u)));}
+ @GetMapping("/me") public UserView me(Authentication auth){AppUser u=users.findByUsername(auth.getName()).orElseThrow();return UserView.of(u);}
+ @PostMapping("/logout") @Transactional public ResponseEntity<Void> logout(Authentication auth,HttpServletRequest request,HttpServletResponse response){users.findByUsername(auth.getName()).ifPresent(u->events.save(new LoginEvent(u,u.getUsername(),"LOGOUT",clientIp(request))));HttpSession session=request.getSession(false);if(session!=null)session.invalidate();SecurityContextHolder.clearContext();return ResponseEntity.noContent().build();}
+ @GetMapping("/csrf") public Map<String,String> csrf(org.springframework.security.web.csrf.CsrfToken token){return Map.of("token",token.getToken());}
+ private String clientIp(HttpServletRequest request){String ip=request.getRemoteAddr();return ip==null?"unknown":ip.substring(0,Math.min(ip.length(),45));}
+}
