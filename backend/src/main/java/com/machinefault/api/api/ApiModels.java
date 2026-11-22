@@ -7,7 +7,7 @@ import java.time.Instant;
 // Request/response data shapes. These are separate from database entities so API output stays intentional.
 public final class ApiModels {
  private ApiModels(){}
- public record UserView(Long id,String username,String displayName,String email,UserRole role,boolean enabled) { public static UserView of(AppUser u){return new UserView(u.getId(),u.getUsername(),u.getDisplayName(),u.getEmail(),u.getRole(),u.isEnabled());} }
+ public record UserView(Long id,String username,String displayName,String email,UserRole role) { public static UserView of(AppUser u){return new UserView(u.getId(),u.getUsername(),u.getDisplayName(),u.getEmail(),u.getRole());} }
  // Validation annotations are checked when a controller parameter uses @Valid.
  public record CreateUser(@NotBlank @Size(max=80) String username,@NotBlank @Size(max=120) String displayName,@NotBlank @Email @Size(max=254) String email,@NotBlank @Size(min=12,max=72) String password,@NotNull UserRole role){}
  public record UpdateUser(@NotBlank @Size(max=120) String displayName,@NotBlank @Email @Size(max=254) String email){}

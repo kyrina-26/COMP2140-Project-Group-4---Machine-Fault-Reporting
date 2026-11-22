@@ -10,6 +10,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.*;
 import org.springframework.security.web.context.*;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
+import jakarta.servlet.http.HttpSessionEvent;
+import jakarta.servlet.http.HttpSessionListener;
 import org.springframework.web.cors.*;
 import java.util.*;
 
@@ -20,6 +23,8 @@ public class SecurityConfig {
  @Bean PasswordEncoder passwordEncoder(){return new BCryptPasswordEncoder();}
  // Stores the authenticated user's security context in a server-side HTTP session.
  @Bean SecurityContextRepository securityContextRepository(){return new HttpSessionSecurityContextRepository();}
+ // Remove a user from the online list when the session logs out or expires.
+ @Bean ServletListenerRegistrationBean<HttpSessionListener> userPresenceSessionListener(com.machinefault.api.service.UserPresence presence){return new ServletListenerRegistrationBean<>(new HttpSessionListener(){@Override public void sessionDestroyed(HttpSessionEvent event){presence.unregister(event.getSession().getId());}});}
  // Basic Auth is disabled; browser requests that change data must include a CSRF token.
  @Bean SecurityFilterChain securityFilterChain(HttpSecurity http,SecurityContextRepository contexts)throws Exception{return http.csrf(c->c.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())).cors(Customizer.withDefaults()).securityContext(c->c.securityContextRepository(contexts)).sessionManagement(s->s.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED)).formLogin(f->f.disable()).httpBasic(b->b.disable()).authorizeHttpRequests(a->a.requestMatchers("/actuator/health","/api/auth/login","/api/auth/csrf").permitAll().anyRequest().authenticated()).build();}
  // Reads the frontend address list from application settings.
