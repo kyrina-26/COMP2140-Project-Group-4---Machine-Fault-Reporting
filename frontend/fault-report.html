@@ -7,15 +7,21 @@
 
     <title>Report Machine Fault</title>
 
-    <link rel="stylesheet" href="fault-report.css">
+    <link rel="stylesheet" href="fault-report.css?v=2">
 </head>
 
 <body>
 
     <!-- HEADER -->
     <header class="header">
-        <h1>Machine Fault Reporting</h1>
-        <p>Maintenance Response System</p>
+        <div>
+            <h1>Machine Fault Reporting</h1>
+            <p>Maintenance Response System</p>
+        </div>
+        <div class="account">
+            <span id="accountName">Loading account...</span>
+            <button type="button" class="secondary-button" id="logoutButton">Sign out</button>
+        </div>
     </header>
 
     <!-- MAIN REPORT CONTAINER -->
@@ -168,7 +174,7 @@
 
     </main>
 
-    <script src="report-fault.js"></script>
+    <script src="report-fault.js?v=2"></script>
 
 </body>
 </html>

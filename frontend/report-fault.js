@@ -1,138 +1,210 @@
 
 const faultReportForm = document.getElementById("faultReportForm");
-
 const machineCodeInput = document.getElementById("machineCode");
-
 const descriptionInput = document.getElementById("description");
-
 const formMessage = document.getElementById("formMessage");
-
 const submitButton = document.getElementById("submitButton");
-
 const scanButton = document.getElementById("scanButton");
-
 const scanStatus = document.getElementById("scanStatus");
-
 const picturesInput = document.getElementById("pictures");
-
 const audioInput = document.getElementById("audio");
-
 const videoInput = document.getElementById("video");
+const originalButtonText = submitButton.textContent.trim();
+const accountName = document.getElementById("accountName");
+const logoutButton = document.getElementById("logoutButton");
 
-
-// 2. DISPLAY FEEDBACK MESSAGES
+let pendingAttachments = null;
 
 function displayMessage(message) {
     formMessage.textContent = message;
 }
 
+async function readJsonResponse(response) {
+    if (!response.headers.get("content-type")?.includes("application/json")) {
+        return {};
+    }
 
-// 3. QR SCANNER BUTTON
+    return response.json();
+}
 
-scanButton.addEventListener("click", function() {
+async function requestJson(url, options) {
+    let response;
 
+    try {
+        response = await fetch(url, options);
+    } catch {
+        throw new Error("Unable to reach the server. Check your connection and try again.");
+    }
+
+    const result = await readJsonResponse(response);
+
+    if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+            throw new Error("Your session may have expired. Please sign in again.");
+        }
+
+        throw new Error(result.error || `Request failed (HTTP ${response.status}).`);
+    }
+
+    return result;
+}
+
+async function getCsrfToken() {
+    const result = await requestJson("/api/auth/csrf");
+
+    if (!result.token) {
+        throw new Error("The server did not provide a security token. Please try again.");
+    }
+
+    return result.token;
+}
+
+async function signOut() {
+    logoutButton.disabled = true;
+
+    try {
+        const csrfToken = await getCsrfToken();
+        await requestJson("/api/auth/logout", {
+            method: "POST",
+            headers: {
+                "X-XSRF-TOKEN": csrfToken
+            }
+        });
+        window.location.assign("login.html");
+    } catch (error) {
+        displayMessage(error.message || "Unable to sign out.");
+        logoutButton.disabled = false;
+    }
+}
+
+async function loadAccount() {
+    try {
+        const user = await requestJson("/api/auth/me");
+        accountName.textContent = user.displayName;
+    } catch (error) {
+        displayMessage(error.message || "Unable to verify your session.");
+        window.location.assign("login.html");
+    }
+}
+
+function selectedFiles() {
+    return [
+        ...picturesInput.files,
+        ...audioInput.files,
+        ...videoInput.files
+    ];
+}
+
+async function uploadAttachments(reportId, files, csrfToken) {
+    const failed = [];
+
+    for (const file of files) {
+        const data = new FormData();
+        data.append("file", file);
+
+        try {
+            await requestJson(`/api/faults/${reportId}/attachments`, {
+                method: "POST",
+                headers: {
+                    "X-XSRF-TOKEN": csrfToken
+                },
+                body: data
+            });
+        } catch (error) {
+            failed.push({ file, message: error.message });
+        }
+    }
+
+    return failed;
+}
+
+function setRetryMode(enabled) {
+    machineCodeInput.disabled = enabled;
+    descriptionInput.disabled = enabled;
+    picturesInput.disabled = enabled;
+    audioInput.disabled = enabled;
+    videoInput.disabled = enabled;
+    submitButton.textContent = enabled ? "Retry Failed Uploads" : originalButtonText;
+}
+
+scanButton.addEventListener("click", () => {
     scanStatus.textContent =
         "QR scanning is not connected yet. Please enter the machine code manually.";
-
 });
 
+logoutButton.addEventListener("click", signOut);
+loadAccount();
 
-// 4. FORM SUBMISSION
-
-faultReportForm.addEventListener("submit", function(event) {
-
-    // Prevent the page from refreshing
+faultReportForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    submitButton.disabled = true;
+    displayMessage("Submitting report...");
 
-    // Clear previous messages
-    displayMessage("");
+    try {
+        const csrfToken = await getCsrfToken();
 
-    // Get the user's input
-    const machineCode = machineCodeInput.value.trim();
+        if (!pendingAttachments) {
+            const machineIdentifier = machineCodeInput.value.trim();
+            const description = descriptionInput.value.trim();
 
-    const description = descriptionInput.value.trim();
+            if (!machineIdentifier) {
+                machineCodeInput.focus();
+                throw new Error("Please enter the machine code.");
+            }
 
+            if (!description) {
+                descriptionInput.focus();
+                throw new Error("Please describe the machine fault.");
+            }
 
-    // 5. VALIDATE MACHINE CODE
+            const report = await requestJson("/api/faults", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-XSRF-TOKEN": csrfToken
+                },
+                body: JSON.stringify({ machineIdentifier, description })
+            });
 
-    if (machineCode === "") {
+            if (!report.id) {
+                throw new Error("The report was submitted, but the server did not return its ID.");
+            }
 
-        displayMessage("Please enter the machine code.");
+            pendingAttachments = {
+                reportId: report.id,
+                files: selectedFiles()
+            };
+        }
 
-        machineCodeInput.focus();
+        if (pendingAttachments.files.length > 0) {
+            displayMessage(`Uploading evidence for report #${pendingAttachments.reportId}...`);
+            const failed = await uploadAttachments(
+                pendingAttachments.reportId,
+                pendingAttachments.files,
+                csrfToken
+            );
 
-        return;
+            if (failed.length > 0) {
+                pendingAttachments.files = failed.map((item) => item.file);
+                setRetryMode(true);
+                displayMessage(
+                    `Report #${pendingAttachments.reportId} was saved, but these uploads failed: ` +
+                    failed.map((item) => `${item.file.name} (${item.message})`).join("; ") +
+                    ". Select Retry Failed Uploads to try again."
+                );
+                return;
+            }
+        }
+
+        const reportId = pendingAttachments.reportId;
+        pendingAttachments = null;
+        faultReportForm.reset();
+        setRetryMode(false);
+        displayMessage(`Report #${reportId} and its evidence were saved successfully.`);
+    } catch (error) {
+        displayMessage(error.message || "The report could not be submitted.");
+    } finally {
+        submitButton.disabled = false;
     }
-
-
-    // 6. VALIDATE FAULT DESCRIPTION
-
-    if (description === "") {
-
-        displayMessage("Please describe the machine fault.");
-
-        descriptionInput.focus();
-
-        return;
-    }
-
-
-    // 7. COLLECT REPORT INFORMATION
-
-    const reportData = new FormData();
-
-    reportData.append("machineCode", machineCode);
-
-    reportData.append("description", description);
-
-
-    // 8. COLLECT PICTURE ATTACHMENTS
-
-    for (const picture of picturesInput.files) {
-
-        reportData.append("pictures", picture);
-
-    }
-
-
-    // 9. COLLECT AUDIO ATTACHMENT
-
-    if (audioInput.files.length > 0) {
-
-        reportData.append("audio", audioInput.files[0]);
-
-    }
-
-
-    // 10. COLLECT VIDEO ATTACHMENT
-
-    if (videoInput.files.length > 0) {
-
-        reportData.append("video", videoInput.files[0]);
-
-    }
-
-
-    // 11. DISPLAY COLLECTED INFORMATION IN CONSOLE
-
-    console.log("Machine Code:", machineCode);
-
-    console.log("Fault Description:", description);
-
-    console.log("Pictures:", picturesInput.files);
-
-    console.log("Audio:", audioInput.files);
-
-    console.log("Video:", videoInput.files);
-
-    console.log("Report information collected:", reportData);
-
-
-    // 12. DISPLAY CONFIRMATION MESSAGE
-
-    displayMessage(
-        "Validation successful! Your report information has been collected. It has not been saved because the backend is not connected yet."
-    );
-
 });
 

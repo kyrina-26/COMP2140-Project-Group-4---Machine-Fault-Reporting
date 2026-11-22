@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance Inbox</title>
+    <link rel="stylesheet" href="maintenance-dashboard.css">
+</head>
+<body>
+    <header class="header">
+        <div>
+            <h1>Machine Fault Reporting</h1>
+            <p>Maintenance Response System</p>
+        </div>
+        <div class="account">
+            <span id="accountName">Loading account...</span>
+            <button type="button" class="secondary-button" id="logoutButton">Sign out</button>
+        </div>
+    </header>
+
+    <main class="dashboard">
+        <section class="inbox-heading">
+            <div>
+                <p class="eyebrow">MAINTENANCE</p>
+                <h2>Notification Inbox</h2>
+                <p>New fault reports for your maintenance team appear here.</p>
+            </div>
+            <button type="button" class="refresh-button" id="refreshButton">Refresh inbox</button>
+        </section>
+
+        <section class="inbox-panel" aria-labelledby="inboxTitle">
+            <div class="inbox-toolbar">
+                <h3 id="inboxTitle">Notifications</h3>
+                <p><strong id="unreadCount">0</strong> unread</p>
+            </div>
+            <p id="inboxStatus" class="status" role="status" aria-live="polite"></p>
+            <p id="emptyState" class="empty-state" hidden>No notifications yet.</p>
+            <div id="notificationsList" class="notifications-list"></div>
+        </section>
+    </main>
+
+    <dialog id="reportDialog" class="report-dialog" aria-labelledby="reportDialogTitle">
+        <div class="dialog-header">
+            <h2 id="reportDialogTitle">Fault Report</h2>
+            <button type="button" class="secondary-button close-button" id="closeReportDialog">Close</button>
+        </div>
+        <p id="reportDialogStatus" class="status" role="status" aria-live="polite"></p>
+        <div id="reportDetails"></div>
+    </dialog>
+
+    <script src="maintenance-dashboard.js" defer></script>
+</body>
+</html>
