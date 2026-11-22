@@ -9,6 +9,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     expose:
       - "3306"
+    networks:
+      - database_internal
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -20,11 +22,18 @@ services:
   # Static frontend served by Nginx.
   frontend:
     image: nginx:alpine
+    environment:
+      API_CONTAINER_PORT: ${API_CONTAINER_PORT}
     expose:
       - "80"
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
-      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    depends_on:
+      - api
+    networks:
+      - nginx_proxy
+      - app_internal
     restart: unless-stopped
 
   # Java REST API; Docker compiles it from backend/ before starting it.
@@ -46,6 +55,9 @@ services:
       APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS}
     expose:
       - "${API_CONTAINER_PORT}"
+    networks:
+      - app_internal
+      - database_internal
     volumes:
       - fault_uploads:${APP_UPLOAD_DIR}
     depends_on:
@@ -59,3 +71,13 @@ volumes:
     name: ${MYSQL_VOLUME_NAME}
   fault_uploads:
     name: ${UPLOADS_VOLUME_NAME}
+
+networks:
+  # NPM reaches only the frontend through this pre-existing external network.
+  nginx_proxy:
+    external: true
+  # Keep app and database traffic isolated from the public proxy network.
+  app_internal:
+    internal: true
+  database_internal:
+    internal: true
