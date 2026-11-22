@@ -87,3 +87,4 @@ data/
 # Local development configuration
 # ==========================================
 .local/
+.vscode/
