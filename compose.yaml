@@ -1,6 +1,7 @@
 services:
   # MySQL database; its named volume keeps records when the container stops.
   mysql:
+    container_name: machine-fault-mysql
     image: ${MYSQL_IMAGE}
     environment:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
@@ -21,6 +22,7 @@ services:
 
   # Static frontend served by Nginx.
   frontend:
+    container_name: machine-fault-frontend
     image: nginx:alpine
     environment:
       API_CONTAINER_PORT: ${API_CONTAINER_PORT}
@@ -38,6 +40,7 @@ services:
 
   # Java REST API; Docker compiles it from backend/ before starting it.
   api:
+    container_name: machine-fault-api
     image: ${API_IMAGE}
     build:
       context: ./backend
