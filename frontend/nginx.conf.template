@@ -2,8 +2,6 @@ server {
     listen 80;
     server_name _;
     root /usr/share/nginx/html;
-    index index.html;
-
     location /api/ {
         proxy_pass http://api:${API_CONTAINER_PORT};
         proxy_set_header Host $host;
@@ -13,10 +11,34 @@ server {
     }
 
     location = / {
-        return 302 /login/;
+        return 302 /login/login.html;
+    }
+
+    location = /login {
+        return 301 /login/login.html;
+    }
+
+    location = /login/ {
+        return 301 /login/login.html;
+    }
+
+    location = /fault-report {
+        return 301 /fault-report/fault-report.html;
+    }
+
+    location = /fault-report/ {
+        return 301 /fault-report/fault-report.html;
+    }
+
+    location = /maintenance-dashboard {
+        return 301 /maintenance-dashboard/maintenance-dashboard.html;
+    }
+
+    location = /maintenance-dashboard/ {
+        return 301 /maintenance-dashboard/maintenance-dashboard.html;
     }
 
     location / {
-        try_files $uri $uri/ =404;
+        try_files $uri =404;
     }
 }

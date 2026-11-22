@@ -70,7 +70,7 @@ async function signOut() {
                 "X-XSRF-TOKEN": csrfToken
             }
         });
-        window.location.assign("/login/");
+        window.location.assign("/login/login.html");
     } catch (error) {
         displayMessage(error.message || "Unable to sign out.");
         logoutButton.disabled = false;
@@ -83,7 +83,7 @@ async function loadAccount() {
         accountName.textContent = user.displayName;
     } catch (error) {
         displayMessage(error.message || "Unable to verify your session.");
-        window.location.assign("/login/");
+        window.location.assign("/login/login.html");
     }
 }
 
