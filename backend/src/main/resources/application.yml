@@ -1,6 +1,9 @@
 spring:
   application:
     name: machine-fault-api
+  # Authentication is handled by the database-backed API login, not Boot's generated in-memory user.
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   # These upload limits are supplied by the root .env file through Docker Compose.
   servlet:
     multipart:
