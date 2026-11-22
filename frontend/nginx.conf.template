@@ -2,6 +2,8 @@ server {
     listen 80;
     server_name _;
     root /usr/share/nginx/html;
+    absolute_redirect off;
+
     location /api/ {
         proxy_pass http://api:${API_CONTAINER_PORT};
         proxy_set_header Host $host;
