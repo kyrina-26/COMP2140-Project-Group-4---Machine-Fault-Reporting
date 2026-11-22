@@ -33,7 +33,7 @@ body {
 .factory-section {
     position: absolute;
     inset: 0;
-    background-image: url("images/factory-maintenance.png");
+    background-image: url("../shared/images/factory-maintenance.png");
     background-size: cover;
     background-position: center;
     z-index: 0;

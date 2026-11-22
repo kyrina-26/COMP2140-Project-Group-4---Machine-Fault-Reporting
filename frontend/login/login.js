@@ -59,8 +59,8 @@ loginForm.addEventListener("submit", async (event) => {
         ];
         window.location.assign(
             maintenanceRoles.includes(role)
-                ? "maintenance-dashboard.html"
-                : "fault-report.html"
+                ? "/maintenance-dashboard/"
+                : "/fault-report/"
         );
     } catch (error) {
         loginMessage.textContent = error.message || "Unable to contact the login service.";

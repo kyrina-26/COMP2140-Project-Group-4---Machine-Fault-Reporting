@@ -36,7 +36,7 @@ async function requestJson(url, options = {}) {
     const result = await readJsonResponse(response);
 
     if (response.status === 401 || response.status === 403) {
-        window.location.assign("login.html");
+        window.location.assign("/login/");
         throw new Error("Your session has expired. Please sign in again.");
     }
 
@@ -253,7 +253,7 @@ async function signOut() {
                 "X-XSRF-TOKEN": token
             }
         });
-        window.location.assign("login.html");
+        window.location.assign("/login/");
     } catch (error) {
         inboxStatus.textContent = error.message || "Unable to sign out.";
         logoutButton.disabled = false;
@@ -267,7 +267,7 @@ async function initializeDashboard() {
         const user = await requestJson("/api/auth/me");
 
         if (!maintenanceRoles.includes(user.role)) {
-            window.location.assign("fault-report.html");
+            window.location.assign("/fault-report/");
             return;
         }
 
