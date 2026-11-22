@@ -70,10 +70,10 @@ services:
 
 volumes:
   # Persistent local data stores for database records and uploaded media.
-  mysql_data:
-    name: ${MYSQL_VOLUME_NAME}
   fault_uploads:
-    name: ${UPLOADS_VOLUME_NAME}
+    name: machine_fault_uploads
+  mysql_data:
+    name: machine_fault_mysql_data
 
 networks:
   # NPM reaches only the frontend through this pre-existing external network.
