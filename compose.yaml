@@ -78,9 +78,12 @@ volumes:
 networks:
   # NPM reaches only the frontend through this pre-existing external network.
   nginx_proxy:
+    name: nginx_proxy
     external: true
   # Keep app and database traffic isolated from the public proxy network.
   app_internal:
+    name: machine_fault_internal
     internal: true
   database_internal:
+    name: machine_fault_database
     internal: true
