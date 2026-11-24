@@ -1,0 +1,49 @@
+services:
+  # Opt-in operations service. This is not included by the normal compose.yaml.
+  backup:
+    profiles: ["backup"]
+    container_name: machine-fault-backup
+    build:
+      context: ./ops/backup
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      BACKUP_DIR: /backups
+      TZ: ${BACKUP_TZ}
+    volumes:
+      - fault_uploads:/uploads:ro
+      - ${BACKUP_HOST_DIR}:/backups
+    networks:
+      - database_internal
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    command: ["/usr/local/bin/backup-scheduler.sh"]
+
+  # Only run this service explicitly. It overwrites the selected database and uploads volume.
+  restore:
+    profiles: ["restore"]
+    container_name: machine-fault-restore
+    build:
+      context: ./ops/backup
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      BACKUP_DIR: /backups
+      RESTORE_SET: ${RESTORE_SET}
+      ALLOW_DESTRUCTIVE_RESTORE: ${ALLOW_DESTRUCTIVE_RESTORE}
+    volumes:
+      - fault_uploads:/uploads
+      - ${BACKUP_HOST_DIR}:/backups:ro
+    networks:
+      - database_internal
+    depends_on:
+      mysql:
+        condition: service_healthy
+    entrypoint: ["/usr/local/bin/restore.sh"]
+
+\n
