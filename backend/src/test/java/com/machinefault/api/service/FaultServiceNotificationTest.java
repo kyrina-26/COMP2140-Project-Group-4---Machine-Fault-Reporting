@@ -2,6 +2,7 @@ package com.machinefault.api.service;
 
 import com.machinefault.api.domain.AppUser;
 import com.machinefault.api.domain.FaultReport;
+import com.machinefault.api.domain.FaultStatus;
 import com.machinefault.api.domain.Machine;
 import com.machinefault.api.domain.MachineStatus;
 import com.machinefault.api.domain.StatusChange;
@@ -63,6 +64,10 @@ class FaultServiceNotificationTest {
         when(users.findByUsername("operator")).thenReturn(Optional.of(reporter));
         when(reports.save(any(FaultReport.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
+        when(reports.existsByMachineAndStatusIn(machine, java.util.List.of(FaultStatus.ASSIGNED, FaultStatus.IN_PROGRESS)))
+                .thenReturn(false);
+        when(reports.existsByMachineAndStatus(machine, FaultStatus.REPORTED))
+                .thenReturn(true);
 
         FaultReport created = service.create("MACH-01", "Press stopped", "operator");
 
