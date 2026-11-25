@@ -15,4 +15,5 @@ public class Machine {
     public Machine(String identifier,String name,String location){this.identifier=identifier;this.name=name;this.location=location;}
     public Long getId(){return id;} public String getIdentifier(){return identifier;} public String getName(){return name;} public String getLocation(){return location;} public MachineStatus getStatus(){return status;} public boolean isActive(){return active;}
     public void setStatus(MachineStatus status){this.status=status;}
+    public void update(String identifier,String name,String location,MachineStatus status){this.identifier=identifier;this.name=name;this.location=location;this.status=status;}
 }

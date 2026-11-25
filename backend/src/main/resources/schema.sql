@@ -8,15 +8,21 @@ CREATE TABLE IF NOT EXISTS users (
   role VARCHAR(40) NOT NULL,
   consecutive_failed_logins INT NOT NULL DEFAULT 0,
   locked_until TIMESTAMP(6),
-  created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)
+  created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- Remove the old account flag from databases initialized by earlier versions.
-SET @enabled_column_exists = (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'enabled');
-SET @drop_enabled_sql = IF(@enabled_column_exists > 0, 'ALTER TABLE users DROP COLUMN enabled', 'SELECT 1');
-PREPARE drop_enabled_stmt FROM @drop_enabled_sql;
-EXECUTE drop_enabled_stmt;
-DEALLOCATE PREPARE drop_enabled_stmt;
+-- Keep the account login flag under its established name, including on older databases.
+SET @user_enabled_exists = (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'enabled');
+SET @user_active_exists = (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'active');
+SET @account_flag_migration = IF(@user_enabled_exists = 0 AND @user_active_exists > 0,
+  'ALTER TABLE users CHANGE COLUMN active enabled BOOLEAN NOT NULL DEFAULT TRUE',
+  IF(@user_enabled_exists = 0,
+    'ALTER TABLE users ADD COLUMN enabled BOOLEAN NOT NULL DEFAULT TRUE',
+    IF(@user_active_exists > 0, 'ALTER TABLE users DROP COLUMN active', 'SELECT 1')));
+PREPARE account_flag_stmt FROM @account_flag_migration;
+EXECUTE account_flag_stmt;
+DEALLOCATE PREPARE account_flag_stmt;
 
 -- Machines are stored separately so reports can validate their machine identifier.
 CREATE TABLE IF NOT EXISTS machines (
