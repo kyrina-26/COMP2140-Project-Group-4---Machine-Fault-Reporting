@@ -1,7 +1,7 @@
 const routeTable = {
     "/maintenance-dashboard/maintenance-dashboard.html": {
         title: "Maintenance Dashboard",
-        style: "/maintenance-dashboard/maintenance-dashboard.css",
+        style: "/maintenance-dashboard/maintenance-dashboard.css?v=2",
         module: "/maintenance-dashboard/maintenance-dashboard.js",
         roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"]
     },
