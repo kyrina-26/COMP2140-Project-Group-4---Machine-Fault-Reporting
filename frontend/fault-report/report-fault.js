@@ -9,14 +9,12 @@ const scanStatus = document.getElementById("scanStatus");
 const picturesInput = document.getElementById("pictures");
 const audioInput = document.getElementById("audio");
 const videoInput = document.getElementById("video");
-const originalButtonText = submitButton.textContent.trim();
 const accountName = document.getElementById("accountName");
 const logoutButton = document.getElementById("logoutButton");
 
-let pendingAttachments = null;
-
-function displayMessage(message) {
+function displayMessage(message, state = "") {
     formMessage.textContent = message;
+    formMessage.className = `form-message${state ? ` is-${state}` : ""}`;
 }
 
 async function readJsonResponse(response) {
@@ -43,7 +41,9 @@ async function requestJson(url, options) {
             throw new Error("Your session may have expired. Please sign in again.");
         }
 
-        throw new Error(result.error || `Request failed (HTTP ${response.status}).`);
+        const error = new Error(result.error || `Request failed (HTTP ${response.status}).`);
+        error.status = response.status;
+        throw error;
     }
 
     return result;
@@ -72,7 +72,7 @@ async function signOut() {
         });
         window.location.assign("/login/login.html");
     } catch (error) {
-        displayMessage(error.message || "Unable to sign out.");
+        displayMessage(error.message || "Unable to sign out.", "error");
         logoutButton.disabled = false;
     }
 }
@@ -82,7 +82,7 @@ async function loadAccount() {
         const user = await requestJson("/api/auth/me");
         accountName.textContent = user.displayName;
     } catch (error) {
-        displayMessage(error.message || "Unable to verify your session.");
+        displayMessage(error.message || "Unable to verify your session.", "error");
         window.location.assign("/login/login.html");
     }
 }
@@ -93,38 +93,6 @@ function selectedFiles() {
         ...audioInput.files,
         ...videoInput.files
     ];
-}
-
-async function uploadAttachments(reportId, files, csrfToken) {
-    const failed = [];
-
-    for (const file of files) {
-        const data = new FormData();
-        data.append("file", file);
-
-        try {
-            await requestJson(`/api/faults/${reportId}/attachments`, {
-                method: "POST",
-                headers: {
-                    "X-XSRF-TOKEN": csrfToken
-                },
-                body: data
-            });
-        } catch (error) {
-            failed.push({ file, message: error.message });
-        }
-    }
-
-    return failed;
-}
-
-function setRetryMode(enabled) {
-    machineCodeInput.disabled = enabled;
-    descriptionInput.disabled = enabled;
-    picturesInput.disabled = enabled;
-    audioInput.disabled = enabled;
-    videoInput.disabled = enabled;
-    submitButton.textContent = enabled ? "Retry Failed Uploads" : originalButtonText;
 }
 
 scanButton.addEventListener("click", () => {
@@ -138,26 +106,45 @@ loadAccount();
 faultReportForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     submitButton.disabled = true;
-    displayMessage("Submitting report...");
+    displayMessage("Submitting report...", "loading");
 
     try {
         const csrfToken = await getCsrfToken();
 
-        if (!pendingAttachments) {
-            const machineIdentifier = machineCodeInput.value.trim();
-            const description = descriptionInput.value.trim();
+        const machineIdentifier = machineCodeInput.value.trim();
+        const description = descriptionInput.value.trim();
+        const files = selectedFiles();
 
-            if (!machineIdentifier) {
-                machineCodeInput.focus();
-                throw new Error("Please enter the machine code.");
+        if (!machineIdentifier) {
+            machineCodeInput.focus();
+            throw new Error("Please enter the machine code.");
+        }
+
+        if (!description) {
+            descriptionInput.focus();
+            throw new Error("Please describe the machine fault.");
+        }
+
+        displayMessage(
+            files.length > 0 ? "Submitting report and uploading evidence..." : "Submitting report...",
+            "loading"
+        );
+
+        let report;
+        if (files.length > 0) {
+            const data = new FormData();
+            data.append("machineIdentifier", machineIdentifier);
+            data.append("description", description);
+            for (const file of files) {
+                data.append("files", file);
             }
-
-            if (!description) {
-                descriptionInput.focus();
-                throw new Error("Please describe the machine fault.");
-            }
-
-            const report = await requestJson("/api/faults", {
+            report = await requestJson("/api/faults", {
+                method: "POST",
+                headers: { "X-XSRF-TOKEN": csrfToken },
+                body: data
+            });
+        } else {
+            report = await requestJson("/api/faults", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -165,44 +152,24 @@ faultReportForm.addEventListener("submit", async (event) => {
                 },
                 body: JSON.stringify({ machineIdentifier, description })
             });
-
-            if (!report.id) {
-                throw new Error("The report was submitted, but the server did not return its ID.");
-            }
-
-            pendingAttachments = {
-                reportId: report.id,
-                files: selectedFiles()
-            };
         }
 
-        if (pendingAttachments.files.length > 0) {
-            displayMessage(`Uploading evidence for report #${pendingAttachments.reportId}...`);
-            const failed = await uploadAttachments(
-                pendingAttachments.reportId,
-                pendingAttachments.files,
-                csrfToken
-            );
-
-            if (failed.length > 0) {
-                pendingAttachments.files = failed.map((item) => item.file);
-                setRetryMode(true);
-                displayMessage(
-                    `Report #${pendingAttachments.reportId} was saved, but these uploads failed: ` +
-                    failed.map((item) => `${item.file.name} (${item.message})`).join("; ") +
-                    ". Select Retry Failed Uploads to try again."
-                );
-                return;
-            }
+        if (!report.id) {
+            throw new Error("The report was submitted, but the server did not return its ID.");
         }
 
-        const reportId = pendingAttachments.reportId;
-        pendingAttachments = null;
         faultReportForm.reset();
-        setRetryMode(false);
-        displayMessage(`Report #${reportId} and its evidence were saved successfully.`);
+        displayMessage(
+            files.length > 0
+                ? `Report #${report.id} and its evidence were saved successfully.`
+                : `Report #${report.id} was saved successfully.`,
+            "success"
+        );
     } catch (error) {
-        displayMessage(error.message || "The report could not be submitted.");
+        const message = error.status === 413
+            ? "An attachment exceeds the upload size limit. Choose a smaller file and try again. No report was saved."
+            : error.message || "The report could not be submitted.";
+        displayMessage(message, "error");
     } finally {
         submitButton.disabled = false;
     }

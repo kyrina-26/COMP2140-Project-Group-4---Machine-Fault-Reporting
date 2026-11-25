@@ -195,6 +195,47 @@ textarea {
     background: #F28C28;
 }
 
+.form-message {
+    margin-top: 16px;
+    padding: 0;
+    border-radius: 9px;
+    font-size: 14px;
+    line-height: 1.5;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.form-message:empty {
+    display: none;
+}
+
+.form-message:not(:empty) {
+    padding: 13px 16px;
+}
+
+.form-message.is-loading {
+    border: 1px solid #f3d49a;
+    background: #fff8e8;
+    color: #80520b;
+}
+
+.form-message.is-success {
+    border: 1px solid #b8ddc5;
+    background: #eff9f2;
+    color: #12623a;
+}
+
+.form-message.is-warning {
+    border: 1px solid #f3d49a;
+    background: #fff8e8;
+    color: #80520b;
+}
+
+.form-message.is-error {
+    border: 1px solid #edc2c2;
+    background: #fff2f2;
+    color: #8b2828;
+}
+
 /* MOBILE */
 @media (max-width: 600px) {
     .header {
