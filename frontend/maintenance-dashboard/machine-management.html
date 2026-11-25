@@ -3,16 +3,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/shared/styles/motion.css">
+    <link rel="icon" href="/shared/images/favicon.ico" sizes="any">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Machine Management</title>
     <link rel="stylesheet" href="machine-management.css">
+    <link rel="stylesheet" href="role-navigation.css">
+    <script src="role-navigation.js" defer></script>
+    <link rel="stylesheet" href="/shared/styles/dropdowns.css">
 </head>
 <body>
 
     <!-- Header -->
     <header class="header">
         <div class="brand">
-            <div class="brand-icon">MF</div>
             <div>
                 <h1>Machine Fault Reporting System</h1>
                 <p>Machine Management</p>
@@ -28,10 +32,11 @@
     </header>
 
     <!-- Navigation -->
-    <nav class="top-navigation">
+    <nav class="top-navigation" hidden>
         <a href="maintenance-dashboard.html" class="nav-link">
             Maintenance Dashboard
         </a>
+        <a href="/fault-report/fault-report.html" class="nav-link">Fault Reporting</a>
         <a href="technician-work.html" class="nav-link">
             Technician Work
         </a>
@@ -92,6 +97,14 @@
             </article>
 
             <article class="summary-card">
+                <div class="summary-icon">!</div>
+                <div>
+                    <p>Fault Reported</p>
+                    <h3 id="faultReportedMachines">0</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
                 <div class="summary-icon">🔧</div>
                 <div>
                     <p>Under Maintenance</p>
@@ -133,6 +146,7 @@
                     <select id="statusFilter">
                         <option value="">All Statuses</option>
                         <option value="OPERATIONAL">Operational</option>
+                        <option value="FAULT_REPORTED">Fault Reported</option>
                         <option value="UNDER_MAINTENANCE">Under Maintenance</option>
                         <option value="OUT_OF_SERVICE">Out of Service</option>
                     </select>
@@ -171,9 +185,7 @@
                             <th>Machine Code</th>
                             <th>Machine Name</th>
                             <th>Location</th>
-                            <th>Department</th>
                             <th>Status</th>
-                            <th>Last Updated</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -244,29 +256,11 @@
                     >
                 </div>
 
-                <div class="form-field">
-                    <label for="machineDepartment">Department *</label>
-                    <input
-                        type="text"
-                        id="machineDepartment"
-                        placeholder="Enter department"
-                        required
-                    >
-                </div>
-
-                <div class="form-field full-width">
-                    <label for="machineDescription">Description</label>
-                    <textarea
-                        id="machineDescription"
-                        rows="3"
-                        placeholder="Enter additional machine information"
-                    ></textarea>
-                </div>
-
                 <div class="form-field full-width">
                     <label for="machineStatus">Machine Status *</label>
                     <select id="machineStatus" required>
                         <option value="OPERATIONAL">Operational</option>
+                        <option value="FAULT_REPORTED">Fault Reported</option>
                         <option value="UNDER_MAINTENANCE">Under Maintenance</option>
                         <option value="OUT_OF_SERVICE">Out of Service</option>
                     </select>
@@ -325,32 +319,19 @@
                 </div>
 
                 <div class="detail-field">
-                    <strong>Department</strong>
-                    <p id="detailDepartment">-</p>
-                </div>
-
-                <div class="detail-field">
                     <strong>Current Status</strong>
                     <p id="detailStatus">-</p>
                 </div>
 
-                <div class="detail-field">
-                    <strong>Last Updated</strong>
-                    <p id="detailUpdated">-</p>
-                </div>
 
             </div>
 
-            <div class="detail-section">
-                <h3>Description</h3>
-                <p id="detailDescription">-</p>
-            </div>
 
         </div>
 
     </dialog>
 
-    <script src="machine-management.js"></script>
+    <script type="module" src="machine-management.js"></script>
 
 </body>
 </html>

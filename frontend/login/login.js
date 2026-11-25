@@ -52,12 +52,19 @@ loginForm.addEventListener("submit", async (event) => {
             throw new Error("The login service did not return your account role.");
         }
 
-        const notificationRoles = ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"];
-        window.location.assign(
-            notificationRoles.includes(role)
+        try {
+            sessionStorage.setItem("userRole", role);
+        } catch {
+            // The authenticated session remains authoritative without this cache.
+        }
+
+        const notificationRoles = ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"];
+        const destination = role === "MAINTENANCE_TECHNICIAN"
+            ? "/maintenance-dashboard/technician-work.html"
+            : notificationRoles.includes(role)
                 ? "/maintenance-dashboard/maintenance-dashboard.html"
-                : "/fault-report/fault-report.html"
-        );
+                : "/fault-report/fault-report.html";
+        window.location.assign(`/app.html#${destination}`);
     } catch (error) {
         loginMessage.textContent = error.message || "Unable to contact the login service.";
     } finally {

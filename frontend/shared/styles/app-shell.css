@@ -1,0 +1,180 @@
+:root {
+    --app-green: #087443;
+    --app-dark-green: #065c35;
+    --app-light-green: #eaf5ed;
+    --app-orange: #f28c28;
+    --app-dark-orange: #d66c12;
+    --app-white: #fff;
+    --app-background: #f3f8f4;
+    --app-text: #333;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    min-height: 100%;
+    background: var(--app-background);
+}
+
+body {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--app-background);
+    color: var(--app-text);
+    font-family: Arial, sans-serif;
+}
+
+.app-shell .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    min-height: 88px;
+    padding: 20px 40px;
+    background: linear-gradient(90deg, var(--app-dark-green), var(--app-green));
+    color: var(--app-white);
+}
+
+.app-shell .brand h1 {
+    margin: 0;
+    font-size: 23px;
+}
+
+.app-shell .brand p {
+    margin: 5px 0 0;
+    color: #ffbd75;
+    font-size: 13px;
+}
+
+.app-shell .account {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 14px;
+}
+
+.app-shell .account button {
+    padding: 12px 18px;
+    border: 1px solid var(--app-white);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--app-white);
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.app-shell .account button:hover {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.app-shell .top-navigation {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    min-height: 58px;
+    padding: 0 40px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--app-white);
+    border-bottom: 4px solid var(--app-orange);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
+}
+
+.app-shell .top-navigation a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 58px;
+    padding: 0 17px;
+    border-bottom: 4px solid transparent;
+    margin-bottom: -4px;
+    color: var(--app-green);
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 160ms ease, color 160ms ease;
+}
+
+.app-shell .top-navigation a:hover {
+    background: var(--app-light-green);
+    color: var(--app-dark-orange);
+}
+
+.app-shell .top-navigation a[aria-current="page"] {
+    border-bottom-color: var(--app-orange);
+    background: #fffaf4;
+    color: var(--app-dark-orange);
+}
+
+.app-content {
+    min-height: calc(100vh - 146px);
+    animation: app-content-appear 130ms ease-out both;
+}
+
+.app-content > main {
+    animation: app-view-appear 150ms ease-out both;
+}
+
+.app-loading,
+.app-error {
+    width: min(100% - 48px, 1200px);
+    margin: 38px auto;
+    color: #707070;
+}
+
+.app-error {
+    padding: 14px 18px;
+    border: 1px solid #edc2c2;
+    border-radius: 10px;
+    background: #fff2f2;
+    color: #8b2828;
+}
+
+@keyframes app-content-appear {
+    from { opacity: 0.75; }
+    to { opacity: 1; }
+}
+
+@keyframes app-view-appear {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 700px) {
+    .app-shell .header {
+        flex-wrap: wrap;
+        padding: 18px 16px;
+    }
+
+    .app-shell .account {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .app-shell .top-navigation {
+        padding: 0 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .app-shell .top-navigation a {
+        padding: 0 13px;
+    }
+
+    .app-shell .brand h1 {
+        font-size: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}

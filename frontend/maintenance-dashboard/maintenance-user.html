@@ -3,26 +3,34 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/shared/styles/motion.css">
+    <link rel="icon" href="/shared/images/favicon.ico" sizes="any">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Administration | Machine Fault Reporting System</title>
     <link rel="stylesheet" href="maintenance-user.css">
+    <link rel="stylesheet" href="role-navigation.css">
+    <script src="role-navigation.js" defer></script>
+    <link rel="stylesheet" href="/shared/styles/dropdowns.css">
 </head>
 <body>
 
 <header class="header">
     <div class="brand">
-        <h1>Machine Fault Reporting System</h1>
-        <p>User Administration</p>
+        <div>
+            <h1>Machine Fault Reporting</h1>
+            <p>Maintenance Response System</p>
+        </div>
     </div>
 
     <div class="account">
-        <span id="userName">Loading...</span>
-        <button id="logoutButton" class="logout-button">Sign Out</button>
+        <span id="userName">Loading account...</span>
+        <button type="button" id="logoutButton" class="secondary-button">Sign out</button>
     </div>
 </header>
 
-<nav class="top-navigation">
+<nav class="top-navigation" aria-label="Main navigation" hidden>
     <a href="maintenance-dashboard.html" class="nav-link">Dashboard</a>
+    <a href="/fault-report/fault-report.html" class="nav-link">Fault Reporting</a>
     <a href="technician-work.html" class="nav-link">Work Queue</a>
     <a href="fault-history.html" class="nav-link">Fault History</a>
     <a href="production-reports.html" class="nav-link">Production Reports</a>
@@ -45,22 +53,22 @@
 
     <section class="summary-grid">
         <div class="summary-card">
-            <span>Total Users</span>
+            <span>Matching Users</span>
             <strong id="totalUsers">0</strong>
         </div>
 
         <div class="summary-card">
-            <span>Active Users</span>
+            <span>Active on Page</span>
             <strong id="activeUsers">0</strong>
         </div>
 
         <div class="summary-card">
-            <span>Inactive Users</span>
+            <span>Inactive on Page</span>
             <strong id="inactiveUsers">0</strong>
         </div>
 
         <div class="summary-card">
-            <span>Maintenance Staff</span>
+            <span>Maintenance Staff on Page</span>
             <strong id="maintenanceUsers">0</strong>
         </div>
     </section>
@@ -82,11 +90,13 @@
                 <label for="roleFilter">Assigned Role</label>
                 <select id="roleFilter">
                     <option value="">All Roles</option>
-                    <option value="ADMIN">Administrator</option>
+                    <option value="SYSTEM_ADMINISTRATOR">Administrator</option>
                     <option value="MAINTENANCE_MANAGER">Maintenance Manager</option>
                     <option value="MAINTENANCE_SUPERVISOR">Maintenance Supervisor</option>
                     <option value="MAINTENANCE_TECHNICIAN">Maintenance Technician</option>
-                    <option value="MACHINE_OPERATOR">Machine Operator</option>
+                    <option value="PRODUCTION_WORKER">Production Worker</option>
+                    <option value="PRODUCTION_SUPERVISOR">Production Supervisor</option>
+                    <option value="PRODUCTION_MANAGER">Production Manager</option>
                 </select>
             </div>
 
@@ -120,7 +130,6 @@
                         <th>Employee ID</th>
                         <th>Full Name</th>
                         <th>Email Address</th>
-                        <th>Department</th>
                         <th>Assigned Role</th>
                         <th>Account Status</th>
                         <th>Actions</th>
@@ -129,10 +138,22 @@
 
                 <tbody id="usersTableBody">
                     <tr>
-                        <td colspan="7" class="empty-state">Loading users...</td>
+                        <td colspan="6" class="empty-state">Loading users...</td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <div class="user-pagination" aria-label="User list pages">
+            <label for="pageSize">Rows per page</label>
+            <select id="pageSize">
+                <option value="10" selected>10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+            </select>
+            <button type="button" id="previousPage" class="refresh-button">Previous</button>
+            <span id="pageStatus" aria-live="polite">Page 0 of 0</span>
+            <button type="button" id="nextPage" class="refresh-button">Next</button>
         </div>
     </section>
 
@@ -176,29 +197,21 @@
             </div>
 
             <div class="form-field">
-                <label for="employeeId">Employee ID</label>
+                <label for="employeeId">Username / Employee ID</label>
                 <input type="text" id="employeeId" maxlength="30" required>
-            </div>
-
-            <div class="form-field">
-                <label for="department">Department</label>
-                <select id="department" required>
-                    <option value="">Select Department</option>
-                    <option value="Production">Production</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Administration">Administration</option>
-                </select>
             </div>
 
             <div class="form-field full-width">
                 <label for="userRole">Assigned System Role</label>
                 <select id="userRole" required>
                     <option value="">Select a role</option>
-                    <option value="ADMIN">Administrator</option>
+                    <option value="SYSTEM_ADMINISTRATOR">Administrator</option>
                     <option value="MAINTENANCE_MANAGER">Maintenance Manager</option>
                     <option value="MAINTENANCE_SUPERVISOR">Maintenance Supervisor</option>
                     <option value="MAINTENANCE_TECHNICIAN">Maintenance Technician</option>
-                    <option value="MACHINE_OPERATOR">Machine Operator</option>
+                    <option value="PRODUCTION_WORKER">Production Worker</option>
+                    <option value="PRODUCTION_SUPERVISOR">Production Supervisor</option>
+                    <option value="PRODUCTION_MANAGER">Production Manager</option>
                 </select>
             </div>
 
@@ -207,10 +220,11 @@
                 <input
                     type="password"
                     id="password"
-                    minlength="8"
+                    minlength="12"
+                    maxlength="72"
                     autocomplete="new-password"
                 >
-                <small>Enter a temporary password of at least 8 characters.</small>
+                <small>Enter a temporary password of at least 12 characters.</small>
             </div>
 
             <div class="form-field full-width">
@@ -222,6 +236,8 @@
             </div>
 
         </div>
+
+        <p id="formMessage" class="form-message" role="alert" aria-live="assertive" hidden></p>
 
         <div class="dialog-actions">
             <button type="button" id="cancelButton" class="cancel-button">
@@ -236,7 +252,7 @@
     </form>
 </dialog>
 
-<script src="maintenance-user.js"></script>
+<script type="module" src="maintenance-user.js"></script>
 </body>
 </html>
 

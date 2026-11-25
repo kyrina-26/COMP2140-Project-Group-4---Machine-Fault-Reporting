@@ -1,39 +1,69 @@
 
 
+import { enhanceSelects } from "/shared/scripts/styled-select.js";
+
+export function mount() {
+const disposeDropdowns = enhanceSelects(document);
 const API_BASE = "/api";
 
 const usersTableBody = document.getElementById("usersTableBody");
 const userDialog = document.getElementById("userDialog");
 const userForm = document.getElementById("userForm");
 const message = document.getElementById("message");
+const formMessage = document.getElementById("formMessage");
 
 let users = [];
 let currentUser = null;
 let canManageUsers = false;
+let currentPage = 0;
+let totalPages = 0;
+let totalElements = 0;
+let pageSize = 10;
+let latestUsersRequest = 0;
+let searchTimer;
 
 /* API request helper */
 
 async function apiRequest(url, options = {}) {
+    const headers = {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...options.headers
+    };
+    if (options.method && options.method !== "GET") {
+        const csrfResponse = await fetch(`${API_BASE}/auth/csrf`, { credentials: "include" });
+        const csrf = await csrfResponse.json();
+        headers["X-XSRF-TOKEN"] = csrf.token;
+    }
     const response = await fetch(`${API_BASE}${url}`, {
         ...options,
         credentials: "include",
         headers: {
-            ...(options.body ? { "Content-Type": "application/json" } : {}),
-            ...options.headers
+            ...headers
         }
     });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || `Request failed: ${response.status}`);
-    }
 
     if (response.status === 204) {
         return null;
     }
 
     const text = await response.text();
-    return text ? JSON.parse(text) : null;
+    let result = null;
+    if (text) {
+        try {
+            result = JSON.parse(text);
+        } catch {
+            result = { error: text };
+        }
+    }
+
+    if (!response.ok) {
+        const detail = result?.fields
+            ? Object.values(result.fields).join(" ")
+            : result?.error ?? result?.message;
+        throw new Error(detail || `Request failed (HTTP ${response.status}).`);
+    }
+
+    return result;
 }
 
 /* User information helpers */
@@ -43,7 +73,8 @@ function getUserId(user) {
 }
 
 function getFullName(user) {
-    return `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
+    return user.displayName
+        || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim()
         || user.name
         || "Unnamed User";
 }
@@ -53,10 +84,10 @@ function getRole(user) {
 }
 
 function getStatus(user) {
-    const active = user.active ?? user.isActive ?? user.enabled;
+    const enabled = user.enabled ?? user.isEnabled ?? user.active ?? user.isActive;
 
-    if (active === true) return "ACTIVE";
-    if (active === false) return "INACTIVE";
+    if (enabled === true) return "ACTIVE";
+    if (enabled === false) return "INACTIVE";
 
     return String(user.status ?? "INACTIVE").toUpperCase();
 }
@@ -67,11 +98,13 @@ function isActive(user) {
 
 function displayRole(role) {
     const roles = {
-        ADMIN: "Administrator",
+        SYSTEM_ADMINISTRATOR: "Administrator",
         MAINTENANCE_MANAGER: "Maintenance Manager",
         MAINTENANCE_SUPERVISOR: "Maintenance Supervisor",
         MAINTENANCE_TECHNICIAN: "Maintenance Technician",
-        MACHINE_OPERATOR: "Machine Operator"
+        PRODUCTION_WORKER: "Production Worker",
+        PRODUCTION_SUPERVISOR: "Production Supervisor",
+        PRODUCTION_MANAGER: "Production Manager"
     };
 
     return roles[role] || String(role).replaceAll("_", " ");
@@ -89,6 +122,18 @@ function clearMessage() {
     message.classList.remove("error");
 }
 
+function showFormMessage(text) {
+    formMessage.textContent = text;
+    formMessage.classList.add("is-error");
+    formMessage.hidden = false;
+}
+
+function clearFormMessage() {
+    formMessage.textContent = "";
+    formMessage.classList.remove("is-error");
+    formMessage.hidden = true;
+}
+
 /* Summary cards */
 
 function updateSummary() {
@@ -103,7 +148,7 @@ function updateSummary() {
         ].includes(getRole(user))
     ).length;
 
-    document.getElementById("totalUsers").textContent = users.length;
+    document.getElementById("totalUsers").textContent = totalElements;
     document.getElementById("activeUsers").textContent = activeCount;
     document.getElementById("inactiveUsers").textContent = inactiveCount;
     document.getElementById("maintenanceUsers").textContent = maintenanceCount;
@@ -112,41 +157,22 @@ function updateSummary() {
 /* Render users */
 
 function renderUsers() {
-    const search = document.getElementById("searchInput")
-        .value.trim().toLowerCase();
-
-    const selectedRole = document.getElementById("roleFilter").value;
-    const selectedStatus = document.getElementById("statusFilter").value;
-
-    const filteredUsers = users.filter(user => {
-        const name = getFullName(user).toLowerCase();
-        const email = String(user.email ?? "").toLowerCase();
-        const employeeId = String(user.employeeId ?? "").toLowerCase();
-
-        const matchesSearch =
-            name.includes(search) ||
-            email.includes(search) ||
-            employeeId.includes(search);
-
-        const matchesRole =
-            !selectedRole || getRole(user) === selectedRole;
-
-        const matchesStatus =
-            !selectedStatus || getStatus(user) === selectedStatus;
-
-        return matchesSearch && matchesRole && matchesStatus;
-    });
-
+    const start = totalElements === 0 ? 0 : currentPage * pageSize + 1;
+    const end = Math.min((currentPage + 1) * pageSize, totalElements);
     document.getElementById("userCount").textContent =
-        `${filteredUsers.length} users`;
+        totalElements === 0 ? "0 users" : `Showing ${start}–${end} of ${totalElements} users`;
+    document.getElementById("pageStatus").textContent =
+        `Page ${totalPages === 0 ? 0 : currentPage + 1} of ${totalPages}`;
+    document.getElementById("previousPage").disabled = currentPage <= 0;
+    document.getElementById("nextPage").disabled = totalPages === 0 || currentPage >= totalPages - 1;
 
     usersTableBody.replaceChildren();
 
-    if (filteredUsers.length === 0) {
+    if (users.length === 0) {
         const row = document.createElement("tr");
         const cell = document.createElement("td");
 
-        cell.colSpan = 7;
+        cell.colSpan = 6;
         cell.className = "empty-state";
         cell.textContent = "No users found.";
 
@@ -155,20 +181,17 @@ function renderUsers() {
         return;
     }
 
-    filteredUsers.forEach(user => {
+    users.forEach(user => {
         const row = document.createElement("tr");
 
         const employeeCell = document.createElement("td");
-        employeeCell.textContent = user.employeeId ?? "Not available";
+        employeeCell.textContent = user.username ?? user.employeeId ?? "Not available";
 
         const nameCell = document.createElement("td");
         nameCell.textContent = getFullName(user);
 
         const emailCell = document.createElement("td");
         emailCell.textContent = user.email ?? "Not available";
-
-        const departmentCell = document.createElement("td");
-        departmentCell.textContent = user.department ?? "Not available";
 
         const roleCell = document.createElement("td");
         roleCell.textContent = displayRole(getRole(user));
@@ -213,7 +236,6 @@ function renderUsers() {
             employeeCell,
             nameCell,
             emailCell,
-            departmentCell,
             roleCell,
             statusCell,
             actionsCell
@@ -225,30 +247,42 @@ function renderUsers() {
 
 /* Load all users */
 
-async function loadUsers() {
+async function loadUsers(page = currentPage) {
+    const requestId = ++latestUsersRequest;
+    currentPage = page;
+    pageSize = Number(document.getElementById("pageSize").value);
     clearMessage();
 
     usersTableBody.innerHTML =
-        '<tr><td colspan="7" class="empty-state">Loading users...</td></tr>';
+        '<tr><td colspan="6" class="empty-state">Loading users...</td></tr>';
 
     try {
-        const result = await apiRequest("/users");
+        const params = new URLSearchParams({ page: String(page), size: String(pageSize) });
+        const search = document.getElementById("searchInput").value.trim();
+        const role = document.getElementById("roleFilter").value;
+        const status = document.getElementById("statusFilter").value;
+        if (search) params.set("search", search);
+        if (role) params.set("role", role);
+        if (status) params.set("enabled", String(status === "ACTIVE"));
 
-        if (Array.isArray(result)) {
-            users = result;
-        } else if (Array.isArray(result?.users)) {
-            users = result.users;
-        } else if (Array.isArray(result?.data)) {
-            users = result.data;
-        } else {
-            users = [];
+        const result = await apiRequest(`/users?${params}`);
+        if (requestId !== latestUsersRequest) return;
+        users = Array.isArray(result?.content) ? result.content : [];
+        totalElements = result?.totalElements ?? users.length;
+        totalPages = result?.totalPages ?? (users.length ? 1 : 0);
+
+        if (totalPages > 0 && currentPage >= totalPages) {
+            return loadUsers(totalPages - 1);
         }
 
         updateSummary();
         renderUsers();
 
     } catch (error) {
+        if (requestId !== latestUsersRequest) return;
         users = [];
+        totalElements = 0;
+        totalPages = 0;
         updateSummary();
         renderUsers();
 
@@ -260,10 +294,12 @@ async function loadUsers() {
 
 function resetUserForm() {
     userForm.reset();
+    clearFormMessage();
 
     document.getElementById("userId").value = "";
     document.getElementById("password").required = true;
     document.getElementById("passwordField").hidden = false;
+    document.getElementById("accountStatus").closest(".form-field").hidden = false;
 
     document.getElementById("dialogTitle").textContent = "Register New User";
     document.getElementById("saveButton").textContent = "Create Account";
@@ -296,13 +332,16 @@ function openEditDialog(user) {
     document.getElementById("saveButton").textContent = "Update User";
 
     document.getElementById("userId").value = getUserId(user) ?? "";
-    document.getElementById("firstName").value = user.firstName ?? "";
-    document.getElementById("lastName").value = user.lastName ?? "";
+    const [firstName = "", ...lastName] = String(user.displayName ?? "").split(" ");
+    document.getElementById("firstName").value = firstName;
+    document.getElementById("lastName").value = lastName.join(" ");
     document.getElementById("email").value = user.email ?? "";
-    document.getElementById("employeeId").value = user.employeeId ?? "";
-    document.getElementById("department").value = user.department ?? "";
+    document.getElementById("employeeId").value = user.username ?? user.employeeId ?? "";
     document.getElementById("userRole").value = getRole(user);
+    document.getElementById("userRole").dispatchEvent(new Event("styled-select-sync"));
     document.getElementById("accountStatus").value = getStatus(user);
+    document.getElementById("accountStatus").dispatchEvent(new Event("styled-select-sync"));
+    document.getElementById("accountStatus").closest(".form-field").hidden = true;
 
     // Password changes use a separate secure process.
     document.getElementById("passwordField").hidden = true;
@@ -319,7 +358,7 @@ userForm.addEventListener("submit", async event => {
     clearMessage();
 
     if (!canManageUsers) {
-        showMessage("You are not authorized to manage user accounts.", true);
+        showFormMessage("You are not authorized to manage user accounts.");
         return;
     }
 
@@ -327,37 +366,33 @@ userForm.addEventListener("submit", async event => {
     const password = document.getElementById("password").value;
 
     const userData = {
-        firstName: document.getElementById("firstName").value.trim(),
-        lastName: document.getElementById("lastName").value.trim(),
+        displayName: `${document.getElementById("firstName").value.trim()} ${document.getElementById("lastName").value.trim()}`,
         email: document.getElementById("email").value.trim(),
-        employeeId: document.getElementById("employeeId").value.trim(),
-        department: document.getElementById("department").value,
+        username: document.getElementById("employeeId").value.trim(),
         role: document.getElementById("userRole").value,
-        status: document.getElementById("accountStatus").value
+        enabled: document.getElementById("accountStatus").value === "ACTIVE"
     };
 
     if (
-        !userData.firstName ||
-        !userData.lastName ||
+        !userData.displayName ||
         !userData.email ||
-        !userData.employeeId ||
-        !userData.department ||
+        !userData.username ||
         !userData.role
     ) {
-        showMessage("Please complete all required fields.", true);
+        showFormMessage("Please complete all required fields.");
         return;
     }
 
-    if (!userId && password.length < 8) {
-        showMessage(
-            "The temporary password must contain at least 8 characters.",
-            true
-        );
+    if (!userId && password.length < 12) {
+        showFormMessage("The temporary password must contain at least 12 characters.");
         return;
     }
 
     if (!userId) {
         userData.password = password;
+    } else {
+        delete userData.username;
+        delete userData.enabled;
     }
 
     const saveButton = document.getElementById("saveButton");
@@ -365,16 +400,17 @@ userForm.addEventListener("submit", async event => {
     saveButton.disabled = true;
     saveButton.textContent = "Saving...";
 
+    clearFormMessage();
     try {
         if (userId) {
             await apiRequest(`/users/${encodeURIComponent(userId)}`, {
-                method: "PUT",
-                body: JSON.stringify(userData)
+                method: "PATCH",
+                body: JSON.stringify({ displayName: userData.displayName, email: userData.email, role: userData.role })
             });
         } else {
             await apiRequest("/users", {
                 method: "POST",
-                body: JSON.stringify(userData)
+                body: JSON.stringify({ username: userData.username, displayName: userData.displayName, email: userData.email, password: userData.password, role: userData.role, enabled: userData.enabled })
             });
         }
 
@@ -390,7 +426,7 @@ userForm.addEventListener("submit", async event => {
         );
 
     } catch (error) {
-        showMessage(`Unable to save user: ${error.message}`, true);
+        showFormMessage(error.message || "Unable to save user. Please try again.");
     } finally {
         saveButton.disabled = false;
         saveButton.textContent = userId ? "Update User" : "Create Account";
@@ -417,7 +453,7 @@ async function toggleUserStatus(user) {
     try {
         await apiRequest(`/users/${encodeURIComponent(userId)}/status`, {
             method: "PATCH",
-            body: JSON.stringify({ status: newStatus })
+            body: JSON.stringify({ enabled: newStatus === "ACTIVE" })
         });
 
         await loadUsers();
@@ -436,7 +472,7 @@ async function toggleUserStatus(user) {
 
 async function loadCurrentUser() {
     try {
-        currentUser = await apiRequest("/auth/me");
+        currentUser = await window.roleNavigationUserPromise;
 
         document.getElementById("userName").textContent =
             getFullName(currentUser);
@@ -444,7 +480,7 @@ async function loadCurrentUser() {
         // Only administrators can manage accounts in this example.
         const currentRole = getRole(currentUser);
 
-        canManageUsers = ["ADMIN", "MAINTENANCE_MANAGER"].includes(currentRole);
+        canManageUsers = currentRole === "SYSTEM_ADMINISTRATOR";
 
         document.getElementById("addUserButton").hidden = !canManageUsers;
 
@@ -479,16 +515,32 @@ document.getElementById("cancelButton")
     .addEventListener("click", () => userDialog.close());
 
 document.getElementById("refreshButton")
-    .addEventListener("click", loadUsers);
+    .addEventListener("click", () => loadUsers());
 
 document.getElementById("searchInput")
-    .addEventListener("input", renderUsers);
+    .addEventListener("input", () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => loadUsers(0), 250);
+    });
 
 document.getElementById("roleFilter")
-    .addEventListener("change", renderUsers);
+    .addEventListener("change", () => loadUsers(0));
 
 document.getElementById("statusFilter")
-    .addEventListener("change", renderUsers);
+    .addEventListener("change", () => loadUsers(0));
+
+document.getElementById("pageSize")
+    .addEventListener("change", () => loadUsers(0));
+
+document.getElementById("previousPage")
+    .addEventListener("click", () => {
+        if (currentPage > 0) loadUsers(currentPage - 1);
+    });
+
+document.getElementById("nextPage")
+    .addEventListener("click", () => {
+        if (currentPage < totalPages - 1) loadUsers(currentPage + 1);
+    });
 
 /* Sign out */
 
@@ -500,7 +552,7 @@ document.getElementById("logoutButton").addEventListener("click", async () => {
     } catch (error) {
         console.error("Sign out request failed:", error);
     } finally {
-        window.location.href = "login.html";
+        window.location.href = "/login/login.html";
     }
 });
 
@@ -512,3 +564,7 @@ async function initializePage() {
 }
 
 initializePage();
+return disposeDropdowns;
+}
+
+if (!window.appRouterActive) mount();

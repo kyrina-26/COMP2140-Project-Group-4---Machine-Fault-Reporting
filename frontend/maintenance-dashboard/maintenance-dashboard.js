@@ -1,16 +1,17 @@
+export function mount() {
 const summaryUnread = document.getElementById("summaryUnread");
 const accountName = document.getElementById("accountName");
 const inboxStatus = document.getElementById("inboxStatus");
 const notificationsList = document.getElementById("notificationsList");
 const emptyState = document.getElementById("emptyState");
-const unreadCount = document.getElementById("unreadCount");
+const markAllReadButton = document.getElementById("markAllReadButton");
 const refreshButton = document.getElementById("refreshButton");
 const logoutButton = document.getElementById("logoutButton");
 const reportDialog = document.getElementById("reportDialog");
 const reportDialogTitle = document.getElementById("reportDialogTitle");
 const reportDialogStatus = document.getElementById("reportDialogStatus");
 const reportDetails = document.getElementById("reportDetails");
-const notificationRoles = ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"];
+const notificationRoles = ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"];
 
 async function readJsonResponse(response) {
     if (response.status === 204) {
@@ -59,9 +60,14 @@ function renderNotifications(notifications) {
         throw new Error("The server returned an invalid notifications list.");
     }
 
+    notifications = [...notifications].sort((first, second) =>
+        new Date(second.createdAt) - new Date(first.createdAt)
+        || Number(second.id) - Number(first.id)
+    );
+
     const unread = notifications.filter((notification) => !notification.readAt);
-    unreadCount.textContent = String(unread.length);
     summaryUnread.textContent = String(unread.length);
+    markAllReadButton.disabled = unread.length === 0;
     notificationsList.replaceChildren();
     emptyState.hidden = notifications.length > 0;
 
@@ -240,6 +246,22 @@ async function markAsRead(notificationId, button) {
     }
 }
 
+async function markAllAsRead() {
+    markAllReadButton.disabled = true;
+    inboxStatus.textContent = "Marking notifications as read...";
+    try {
+        const token = await getCsrfToken();
+        await requestJson("/api/notifications/read-all", {
+            method: "PATCH",
+            headers: { "X-XSRF-TOKEN": token }
+        });
+        await loadInbox();
+    } catch (error) {
+        inboxStatus.textContent = error.message || "Unable to mark notifications as read.";
+        markAllReadButton.disabled = false;
+    }
+}
+
 async function signOut() {
     logoutButton.disabled = true;
 
@@ -262,7 +284,7 @@ async function initializeDashboard() {
     refreshButton.disabled = true;
 
     try {
-        const user = await requestJson("/api/auth/me");
+        const user = await window.roleNavigationUserPromise;
 
         if (!notificationRoles.includes(user.role)) {
             window.location.assign("/fault-report/fault-report.html");
@@ -279,6 +301,10 @@ async function initializeDashboard() {
 }
 
 refreshButton.addEventListener("click", loadInbox);
+markAllReadButton.addEventListener("click", markAllAsRead);
 logoutButton.addEventListener("click", signOut);
 document.getElementById("closeReportDialog").addEventListener("click", () => reportDialog.close());
 initializeDashboard();
+}
+
+if (!window.appRouterActive) mount();

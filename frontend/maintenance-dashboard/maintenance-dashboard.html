@@ -3,15 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <link rel="icon" href="/shared/images/favicon.ico" sizes="any">
+    <link rel="stylesheet" href="/shared/styles/motion.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Maintenance Dashboard</title>
     <link rel="stylesheet" href="maintenance-dashboard.css">
+    <link rel="stylesheet" href="role-navigation.css">
+    <script src="role-navigation.js" defer></script>
+    <link rel="stylesheet" href="/shared/styles/dropdowns.css">
 </head>
 <body>
 
     <header class="header">
         <div class="brand">
-            <div class="brand-icon">MF</div>
             <div>
                 <h1>Machine Fault Reporting</h1>
                 <p>Maintenance Response System</p>
@@ -26,10 +29,11 @@
         </div>
     </header>
 
-    <nav class="top-navigation" aria-label="Main navigation">
+    <nav class="top-navigation" aria-label="Main navigation" hidden>
         <a href="maintenance-dashboard.html" class="nav-link active">
             Notification Inbox
         </a>
+        <a href="/fault-report/fault-report.html" class="nav-link">Fault Reporting</a>
         <a href="technician-work.html" class="nav-link">
             Technician Work
         </a>
@@ -64,20 +68,12 @@
             </button>
         </section>
 
-        <section class="summary-grid" aria-label="Inbox summary">
-            <article class="summary-card">
-                <div class="summary-icon">!</div>
+        <section class="summary-grid" aria-label="Unread notification summary">
+            <article class="summary-card unread-summary-card">
+                <div class="summary-icon" aria-hidden="true">!</div>
                 <div>
                     <p>Unread Notifications</p>
                     <h3 id="summaryUnread">--</h3>
-                </div>
-            </article>
-
-            <article class="summary-card">
-                <div class="summary-icon orange-icon">✓</div>
-                <div>
-                    <p>Inbox</p>
-                    <h3>Notifications</h3>
                 </div>
             </article>
         </section>
@@ -90,10 +86,9 @@
                     <p>New fault reports for your maintenance team appear here.</p>
                 </div>
 
-                <div class="unread-indicator">
-                    <strong id="unreadCount">0</strong>
-                    <span>unread</span>
-                </div>
+                <button type="button" id="markAllReadButton" class="mark-all-read-button" disabled>
+                    Mark all as read
+                </button>
             </div>
 
             <p id="inboxStatus" class="status"
@@ -108,6 +103,7 @@
             <div id="notificationsList" class="notifications-list"></div>
 
         </section>
+
     </main>
 
     <footer class="footer">
@@ -137,6 +133,6 @@
 
     </dialog>
 
-    <script src="maintenance-dashboard.js" defer></script>
+    <script type="module" src="maintenance-dashboard.js"></script>
 </body>
 </html>

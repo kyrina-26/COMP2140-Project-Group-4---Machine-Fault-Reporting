@@ -43,4 +43,15 @@ server {
     location / {
         try_files $uri =404;
     }
+
+    # Revalidate page markup, while briefly caching assets between tab switches.
+    location ~* \.html$ {
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+
+    location ~* \.(js|css)$ {
+        add_header Cache-Control "public, max-age=30" always;
+        try_files $uri =404;
+    }
 }

@@ -1,8 +1,10 @@
 
-document.addEventListener("DOMContentLoaded", () => {
+import { enhanceSelects } from "/shared/scripts/styled-select.js";
+
+export function mount() {
+const disposeDropdowns = enhanceSelects(document);
     // API endpoints
     const API_BASE = "/api";
-    const MY_REPORTS_ENDPOINT = `${API_BASE}/faults/my-reports`;
 
     // Page elements
     const userName = document.getElementById("userName");
@@ -99,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         return (
+            report.machineIdentifier ??
             report.machine?.machineCode ??
             report.machine?.code ??
             report.machineCode ??
@@ -110,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Get report status
     function getStatus(report) {
-        return String(report.status ?? "SUBMITTED").toUpperCase();
+        return String(report.status ?? "REPORTED").toUpperCase();
     }
 
     // Get technician name
@@ -132,6 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Get report date
     function getReportDate(report) {
         return (
+            report.submittedAt ??
             report.createdAt ??
             report.reportedAt ??
             report.dateReported ??
@@ -172,7 +176,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Load logged-in user
     async function loadUser() {
         try {
-            const data = await apiRequest(`${API_BASE}/auth/me`);
+            const data = await window.roleNavigationUserPromise;
 
             const user = data?.user ?? data?.data ?? data;
 
@@ -193,8 +197,7 @@ document.addEventListener("DOMContentLoaded", () => {
         pendingReports.textContent = reports.filter(report => {
             const status = getStatus(report);
 
-            return status === "SUBMITTED" ||
-                   status === "UNDER_REVIEW";
+            return status === "REPORTED";
         }).length;
 
         activeReports.textContent = reports.filter(report => {
@@ -288,9 +291,15 @@ document.addEventListener("DOMContentLoaded", () => {
         searchButton.disabled = true;
 
         try {
-            const data = await apiRequest(MY_REPORTS_ENDPOINT);
-
-            allReports = getReportList(data);
+            allReports = [];
+            let page = 0;
+            let totalPages = 1;
+            while (page < totalPages) {
+                const data = await apiRequest(`${API_BASE}/faults?page=${page}&size=100`);
+                allReports.push(...getReportList(data));
+                totalPages = data.totalPages ?? 1;
+                page += 1;
+            }
 
             updateSummary(allReports);
             applyFilters();
@@ -374,12 +383,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const heading = document.createElement("strong");
             heading.textContent = displayValue(
-                update.status ?? update.title ?? "Maintenance Update"
+                update.toStatus ?? update.status ?? update.title ?? "Maintenance Update"
             );
 
             const description = document.createElement("p");
             description.textContent = displayValue(
-                update.notes ?? update.description ?? update.message
+                update.notes ?? update.description ?? update.message ??
+                (update.fromStatus ? `${update.fromStatus} → ${update.toStatus}` : "")
             );
 
             const date = document.createElement("small");
@@ -407,7 +417,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const url = typeof item === "string"
                 ? item
-                : item.url ?? item.fileUrl;
+                : item.downloadUrl ?? item.url ?? item.fileUrl;
 
             if (!url) {
                 return;
@@ -419,7 +429,7 @@ document.addEventListener("DOMContentLoaded", () => {
             link.className = "evidence-link";
             link.textContent = typeof item === "string"
                 ? "View attachment"
-                : item.fileName ?? item.name ?? "View attachment";
+                : item.originalName ?? item.fileName ?? item.name ?? "View attachment";
 
             container.appendChild(link);
         });
@@ -428,9 +438,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Open report details
     async function openReport(reportId) {
         try {
-            const report = await apiRequest(
+            const details = await apiRequest(
                 `${API_BASE}/faults/${encodeURIComponent(reportId)}`
             );
+            const report = details.fault ?? details;
 
             setDetail("detailReportId", getReportId(report));
             setDetail("detailMachine", getMachine(report));
@@ -450,14 +461,20 @@ document.addEventListener("DOMContentLoaded", () => {
                 report.problem
             );
 
-            displayUpdates(
-                report.maintenanceUpdates ??
-                report.updates ??
-                report.history
-            );
+            const actions = (details.maintenanceActions ?? []).map(action => ({
+                title: `Maintenance action by ${action.technicianName}`,
+                description: action.description,
+                date: action.recordedAt
+            }));
+            const statuses = (details.statusHistory ?? []).map(change => ({
+                title: `Status changed to ${change.toStatus?.replaceAll("_", " ")}`,
+                description: change.fromStatus ? `From ${change.fromStatus.replaceAll("_", " ")}` : "Report created",
+                date: change.changedAt
+            }));
+            displayUpdates([...statuses, ...actions]);
 
             displayEvidence(
-                report.evidence ??
+                details.attachments ?? report.evidence ??
                 report.attachments ??
                 report.files
             );
@@ -487,6 +504,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearButton.addEventListener("click", () => {
         searchInput.value = "";
         statusFilter.value = "";
+        statusFilter.dispatchEvent(new Event("styled-select-sync"));
         dateFilter.value = "";
 
         applyFilters();
@@ -509,13 +527,12 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutButton.disabled = true;
 
         try {
-            await apiRequest(`${API_BASE}/auth/logout`, {
-                method: "POST"
-            });
+            const csrfResponse = await apiRequest(`${API_BASE}/auth/csrf`);
+            await apiRequest(`${API_BASE}/auth/logout`, { method: "POST", headers: { "X-XSRF-TOKEN": csrfResponse.token } });
         } catch (error) {
             console.error("Sign-out request failed:", error);
         } finally {
-            window.location.href = "login.html";
+            window.location.href = "/login/login.html";
         }
     });
 
@@ -526,4 +543,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     initialisePage();
-});
+    return disposeDropdowns;
+}
+
+if (!window.appRouterActive) mount();

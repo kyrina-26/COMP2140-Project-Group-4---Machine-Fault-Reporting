@@ -1,0 +1,8 @@
+.top-navigation[hidden] {
+    display: flex !important;
+    visibility: hidden;
+}
+
+.top-navigation a[hidden] {
+    display: none !important;
+}

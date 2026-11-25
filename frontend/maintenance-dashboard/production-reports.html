@@ -3,16 +3,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/shared/styles/motion.css">
+    <link rel="icon" href="/shared/images/favicon.ico" sizes="any">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Production Report Tracking</title>
     <link rel="stylesheet" href="production-reports.css">
+    <link rel="stylesheet" href="role-navigation.css">
+    <script src="role-navigation.js" defer></script>
+    <link rel="stylesheet" href="/shared/styles/dropdowns.css">
 </head>
 <body>
 
     <!-- Header -->
     <header class="header">
         <div class="brand">
-            <div class="brand-icon">MF</div>
             <div>
                 <h1>Machine Fault Reporting System</h1>
                 <p>Production Report Tracking</p>
@@ -28,10 +32,11 @@
     </header>
 
     <!-- Navigation -->
-    <nav class="top-navigation">
+    <nav class="top-navigation" hidden>
         <a href="maintenance-dashboard.html" class="nav-link">
             Maintenance Dashboard
         </a>
+        <a href="/fault-report/fault-report.html" class="nav-link">Fault Reporting</a>
         <a href="technician-work.html" class="nav-link">
             Technician Work
         </a>
@@ -126,8 +131,7 @@
                     <label for="statusFilter">Report Status</label>
                     <select id="statusFilter">
                         <option value="">All Statuses</option>
-                        <option value="SUBMITTED">Submitted</option>
-                        <option value="UNDER_REVIEW">Under Review</option>
+                        <option value="REPORTED">Reported</option>
                         <option value="ASSIGNED">Assigned</option>
                         <option value="IN_PROGRESS">In Progress</option>
                         <option value="RESOLVED">Resolved</option>
@@ -269,7 +273,7 @@
 
     </dialog>
 
-    <script src="production-reports.js"></script>
+    <script type="module" src="production-reports.js"></script>
 
 </body>
 </html>

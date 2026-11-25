@@ -1,4 +1,5 @@
 
+export function mount() {
 const faultReportForm = document.getElementById("faultReportForm");
 const machineCodeInput = document.getElementById("machineCode");
 const descriptionInput = document.getElementById("description");
@@ -79,7 +80,9 @@ async function signOut() {
 
 async function loadAccount() {
     try {
-        const user = await requestJson("/api/auth/me");
+        const user = window.roleNavigationUserPromise
+            ? await window.roleNavigationUserPromise
+            : await requestJson("/api/auth/me");
         accountName.textContent = user.displayName;
     } catch (error) {
         displayMessage(error.message || "Unable to verify your session.", "error");
@@ -174,4 +177,7 @@ faultReportForm.addEventListener("submit", async (event) => {
         submitButton.disabled = false;
     }
 });
+}
+
+if (!window.appRouterActive) mount();
 

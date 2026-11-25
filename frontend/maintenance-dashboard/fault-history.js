@@ -1,4 +1,8 @@
 
+import { enhanceSelects } from "/shared/scripts/styled-select.js";
+
+export function mount() {
+const disposeDropdowns = enhanceSelects(document);
 const accountName = document.getElementById("accountName");
 const logoutButton = document.getElementById("logoutButton");
 const searchForm = document.getElementById("searchForm");
@@ -452,7 +456,7 @@ async function signOut() {
 
 async function initializePage() {
     try {
-        const user = await requestJson("/api/auth/me");
+        const user = await window.roleNavigationUserPromise;
 
         accountName.textContent = user.displayName;
 
@@ -470,7 +474,15 @@ searchForm.addEventListener("submit", event => {
     if (fromFilter.value && toFilter.value &&
         new Date(fromFilter.value) > new Date(toFilter.value)) {
         pageStatus.textContent =
-            "The From date must be earlier than the To date.";
+            "Choose a To date and time later than the From date and time.";
+        renderSearchResults([]);
+        resultSummary.textContent = "No matching reports.";
+        resultCount.textContent = "0 reports";
+        currentPage = 0;
+        totalPages = 0;
+        pageNumber.textContent = "Page 0 of 0";
+        previousButton.disabled = true;
+        nextButton.disabled = true;
         return;
     }
 
@@ -505,3 +517,7 @@ document.getElementById("closeDialog").addEventListener("click", () => {
 logoutButton.addEventListener("click", signOut);
 
 initializePage();
+return disposeDropdowns;
+}
+
+if (!window.appRouterActive) mount();

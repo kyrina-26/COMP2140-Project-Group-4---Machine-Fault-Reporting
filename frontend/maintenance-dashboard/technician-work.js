@@ -1,4 +1,8 @@
 
+import { enhanceSelects } from "/shared/scripts/styled-select.js";
+
+export function mount() {
+const disposeDropdowns = enhanceSelects(document);
 const accountName = document.getElementById("accountName");
 const logoutButton = document.getElementById("logoutButton");
 const refreshButton = document.getElementById("refreshButton");
@@ -19,8 +23,8 @@ const reportDetails = document.getElementById("reportDetails");
 const actionForm = document.getElementById("actionForm");
 const actionDescription = document.getElementById("actionDescription");
 const saveActionButton = document.getElementById("saveActionButton");
-const updateStatusButton = document.getElementById("updateStatusButton");
-const nextStatusDescription = document.getElementById("nextStatusDescription");
+const statusSelect = document.getElementById("statusSelect");
+const saveStatusButton = document.getElementById("saveStatusButton");
 
 let currentPage = 0;
 let totalPages = 0;
@@ -101,31 +105,16 @@ function addDetailField(container, label, value) {
     container.append(field);
 }
 
-function getNextStatus(status) {
-    const transitions = {
-        ASSIGNED: "IN_PROGRESS",
-        IN_PROGRESS: "RESOLVED",
-        RESOLVED: "CLOSED"
-    };
-
-    return transitions[status] || null;
+function updateStatusControl(status) {
+    statusSelect.value = status;
+    statusSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    statusSelect.disabled = !currentReport;
+    saveStatusButton.disabled = !currentReport || statusSelect.value === currentReport.status;
 }
 
-function updateStatusControl(status) {
-    const nextStatus = getNextStatus(status);
-
-    updateStatusButton.disabled = !nextStatus;
-
-    if (nextStatus) {
-        nextStatusDescription.textContent =
-            `The next permitted status is ${formatStatus(nextStatus)}.`;
-        updateStatusButton.textContent =
-            `Move to ${formatStatus(nextStatus)}`;
-    } else {
-        nextStatusDescription.textContent =
-            "There are no further status updates available for this report.";
-        updateStatusButton.textContent = "No Further Updates";
-    }
+function setDialogMessage(text, isError = false) {
+    dialogStatus.textContent = text;
+    dialogStatus.classList.toggle("is-error", isError);
 }
 
 function renderWorkReports(reports) {
@@ -195,13 +184,17 @@ async function loadWork() {
             params.set("status", statusFilter.value);
         }
 
-        const result = await requestJson(`/api/faults?${params}`);
+        const result = await requestJson(`/api/technicians/me/faults?${params}`);
 
         if (!Array.isArray(result.content)) {
             throw new Error("The server returned an invalid report list.");
         }
 
-        renderWorkReports(result.content);
+        const newestFirst = [...result.content].sort((first, second) =>
+            new Date(second.submittedAt) - new Date(first.submittedAt)
+            || Number(second.id) - Number(first.id)
+        );
+        renderWorkReports(newestFirst);
 
         totalPages = result.totalPages || 0;
         pageNumber.textContent =
@@ -229,7 +222,7 @@ async function loadWork() {
 }
 
 async function openReport(reportId) {
-    dialogStatus.textContent = "Loading report details...";
+    setDialogMessage("Loading report details...");
     reportDetails.replaceChildren();
     currentReport = null;
     updateStatusControl("CLOSED");
@@ -246,16 +239,16 @@ async function openReport(reportId) {
         currentReport = details.fault;
         renderReportDetails(details);
     } catch (error) {
-        dialogStatus.textContent =
-            error.message || "Unable to open this report.";
+        setDialogMessage(error.message || "Unable to open this report.", true);
     }
 }
 
 function renderReportDetails(details) {
     const fault = details.fault;
 
+    currentReport = fault;
     dialogTitle.textContent = `Fault Report #${fault.id}`;
-    dialogStatus.textContent = "";
+    setDialogMessage("");
 
     reportDetails.replaceChildren();
 
@@ -353,12 +346,12 @@ actionForm.addEventListener("submit", async (event) => {
     const description = actionDescription.value.trim();
 
     if (!description) {
-        dialogStatus.textContent = "Enter a maintenance action before saving.";
+        setDialogMessage("Enter a maintenance action before saving.", true);
         return;
     }
 
     saveActionButton.disabled = true;
-    dialogStatus.textContent = "Saving maintenance action...";
+    setDialogMessage("Saving maintenance action...");
 
     try {
         const token = await getCsrfToken();
@@ -373,28 +366,32 @@ actionForm.addEventListener("submit", async (event) => {
         });
 
         actionDescription.value = "";
-        dialogStatus.textContent = "Maintenance action saved successfully.";
+        setDialogMessage("Maintenance action saved successfully.");
 
         const details = await requestJson(`/api/faults/${currentReport.id}`);
+        currentReport = details.fault;
         renderReportDetails(details);
-        dialogStatus.textContent = "Maintenance action saved successfully.";
+        setDialogMessage("Maintenance action saved successfully.");
     } catch (error) {
-        dialogStatus.textContent =
-            error.message || "Unable to save the maintenance action.";
+        setDialogMessage(error.message || "Unable to save the maintenance action.", true);
     } finally {
         saveActionButton.disabled = false;
     }
 });
 
-updateStatusButton.addEventListener("click", async () => {
+statusSelect.addEventListener("change", () => {
+    saveStatusButton.disabled = !currentReport || statusSelect.value === currentReport.status;
+});
+
+saveStatusButton.addEventListener("click", async () => {
     if (!currentReport) return;
 
-    const nextStatus = getNextStatus(currentReport.status);
+    const selectedStatus = statusSelect.value;
+    if (selectedStatus === currentReport.status) return;
 
-    if (!nextStatus) return;
-
-    updateStatusButton.disabled = true;
-    dialogStatus.textContent = "Updating report status...";
+    saveStatusButton.disabled = true;
+    statusSelect.disabled = true;
+    setDialogMessage("Saving report status...");
 
     try {
         const token = await getCsrfToken();
@@ -405,21 +402,20 @@ updateStatusButton.addEventListener("click", async () => {
                 "Content-Type": "application/json",
                 "X-XSRF-TOKEN": token
             },
-            body: JSON.stringify({ status: nextStatus })
+            body: JSON.stringify({ status: selectedStatus })
         });
 
         const details = await requestJson(`/api/faults/${currentReport.id}`);
         renderReportDetails(details);
 
-        dialogStatus.textContent =
-            `Report status updated to ${formatStatus(nextStatus)}.`;
+        setDialogMessage(`Report status updated to ${formatStatus(selectedStatus)}.`);
 
         await loadWork();
     } catch (error) {
-        dialogStatus.textContent =
-            error.message || "Unable to update report status.";
+        setDialogMessage(error.message || "Unable to update report status.", true);
     } finally {
-        updateStatusButton.disabled = false;
+        statusSelect.disabled = !currentReport;
+        saveStatusButton.disabled = !currentReport || statusSelect.value === currentReport.status;
     }
 });
 
@@ -447,7 +443,7 @@ async function initializePage() {
     refreshButton.disabled = true;
 
     try {
-        const user = await requestJson("/api/auth/me");
+        const user = await window.roleNavigationUserPromise;
 
         if (user.role !== "MAINTENANCE_TECHNICIAN") {
             window.location.assign("/maintenance-dashboard/maintenance-dashboard.html");
@@ -495,3 +491,8 @@ nextButton.addEventListener("click", () => {
 logoutButton.addEventListener("click", signOut);
 
 initializePage();
+
+return disposeDropdowns;
+}
+
+if (!window.appRouterActive) mount();

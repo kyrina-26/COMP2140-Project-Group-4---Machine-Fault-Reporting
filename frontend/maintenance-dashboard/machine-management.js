@@ -1,5 +1,8 @@
 
-document.addEventListener("DOMContentLoaded", () => {
+import { enhanceSelects } from "/shared/scripts/styled-select.js";
+
+export function mount() {
+const disposeDropdowns = enhanceSelects(document);
 
     // API configuration
     const API_BASE = "/api";
@@ -24,6 +27,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Summary cards
     const totalMachines = document.getElementById("totalMachines");
     const operationalMachines = document.getElementById("operationalMachines");
+    const faultReportedMachines = document.getElementById("faultReportedMachines");
     const maintenanceMachines = document.getElementById("maintenanceMachines");
     const outOfServiceMachines = document.getElementById("outOfServiceMachines");
 
@@ -40,8 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const machineCode = document.getElementById("machineCode");
     const machineName = document.getElementById("machineName");
     const machineLocation = document.getElementById("machineLocation");
-    const machineDepartment = document.getElementById("machineDepartment");
-    const machineDescription = document.getElementById("machineDescription");
     const machineStatus = document.getElementById("machineStatus");
     const formError = document.getElementById("formError");
 
@@ -51,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Store machine records
     let allMachines = [];
+    let canManageMachines = false;
 
     // API request helper
     async function apiRequest(url, options = {}) {
@@ -117,22 +120,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Get machine code
     function getMachineCode(machine) {
-        return machine.machineCode ?? machine.code ?? machine.machineIdentifier ?? "";
+        return machine.identifier ?? machine.machineCode ?? machine.code ?? machine.machineIdentifier ?? "";
     }
 
     // Get machine name
     function getMachineName(machine) {
-        return machine.machineName ?? machine.name ?? "";
+        return machine.name ?? machine.machineName ?? "";
     }
 
     // Get machine location
     function getLocation(machine) {
         return machine.location ?? machine.machineLocation ?? "Not available";
-    }
-
-    // Get department
-    function getDepartment(machine) {
-        return machine.department ?? machine.departmentName ?? "Not available";
     }
 
     // Get machine status
@@ -178,15 +176,13 @@ document.addEventListener("DOMContentLoaded", () => {
     async function loadUser() {
 
         try {
-            const data = await apiRequest(`${API_BASE}/auth/me`);
+            const data = await window.roleNavigationUserPromise;
 
             const user = data?.user ?? data?.data ?? data;
 
-            if (user?.fullName) {
-                userName.textContent = user.fullName;
-            } else if (user?.name) {
-                userName.textContent = user.name;
-            }
+            if (user?.displayName) userName.textContent = user.displayName;
+            canManageMachines = user?.role === "SYSTEM_ADMINISTRATOR";
+            addMachineButton.hidden = !canManageMachines;
 
         } catch (error) {
             console.error("Unable to load user:", error);
@@ -200,6 +196,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
         operationalMachines.textContent = machines.filter(machine =>
             getStatus(machine) === "OPERATIONAL"
+        ).length;
+
+        faultReportedMachines.textContent = machines.filter(machine =>
+            getStatus(machine) === "FAULT_REPORTED"
         ).length;
 
         maintenanceMachines.textContent = machines.filter(machine =>
@@ -249,9 +249,6 @@ document.addEventListener("DOMContentLoaded", () => {
             // Location
             row.appendChild(createCell(getLocation(machine)));
 
-            // Department
-            row.appendChild(createCell(getDepartment(machine)));
-
             // Status
             const statusCell = document.createElement("td");
 
@@ -260,11 +257,6 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             row.appendChild(statusCell);
-
-            // Last updated
-            row.appendChild(
-                createCell(formatDate(machine.updatedAt ?? machine.lastUpdated))
-            );
 
             // Actions
             const actionCell = document.createElement("td");
@@ -282,17 +274,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 viewMachine(getMachineId(machine));
             });
 
-            const editButton = document.createElement("button");
-
-            editButton.type = "button";
-            editButton.className = "edit-button";
-            editButton.textContent = "Edit";
-
-            editButton.addEventListener("click", () => {
-                editMachine(machine);
-            });
-
-            actionContainer.append(viewButton, editButton);
+            actionContainer.append(viewButton);
+            if (canManageMachines) {
+                const editButton = document.createElement("button");
+                editButton.type = "button";
+                editButton.className = "edit-button";
+                editButton.textContent = "Edit";
+                editButton.addEventListener("click", () => editMachine(machine));
+                actionContainer.append(editButton);
+            }
             actionCell.appendChild(actionContainer);
 
             row.appendChild(actionCell);
@@ -381,6 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         machineId.value = "";
         machineStatus.value = "OPERATIONAL";
+        machineStatus.dispatchEvent(new Event("styled-select-sync"));
 
         formError.hidden = true;
         formError.textContent = "";
@@ -409,15 +400,8 @@ document.addEventListener("DOMContentLoaded", () => {
             ? ""
             : getLocation(machine);
 
-        machineDepartment.value =
-            getDepartment(machine) === "Not available"
-                ? ""
-                : getDepartment(machine);
-
-        machineDescription.value =
-            machine.description ?? machine.machineDescription ?? "";
-
         machineStatus.value = getStatus(machine);
+        machineStatus.dispatchEvent(new Event("styled-select-sync"));
 
         dialogTitle.textContent = "Edit Machine";
         saveMachineButton.textContent = "Update Machine";
@@ -435,11 +419,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const id = machineId.value;
 
         const machineData = {
-            machineCode: machineCode.value.trim(),
-            machineName: machineName.value.trim(),
+            identifier: machineCode.value.trim(),
+            name: machineName.value.trim(),
             location: machineLocation.value.trim(),
-            department: machineDepartment.value.trim(),
-            description: machineDescription.value.trim(),
             status: machineStatus.value
         };
 
@@ -459,10 +441,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         try {
 
+            const csrfResponse = await apiRequest(`${API_BASE}/auth/csrf`);
             await apiRequest(url, {
                 method,
                 headers: {
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "X-XSRF-TOKEN": csrfResponse.token
                 },
                 body: JSON.stringify(machineData)
             });
@@ -511,19 +495,8 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("detailLocation").textContent =
                 getLocation(machine);
 
-            document.getElementById("detailDepartment").textContent =
-                getDepartment(machine);
-
             document.getElementById("detailStatus").textContent =
                 formatStatus(getStatus(machine));
-
-            document.getElementById("detailUpdated").textContent =
-                formatDate(machine.updatedAt ?? machine.lastUpdated);
-
-            document.getElementById("detailDescription").textContent =
-                machine.description ??
-                machine.machineDescription ??
-                "No description available.";
 
             detailsDialog.showModal();
 
@@ -558,6 +531,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         searchInput.value = "";
         statusFilter.value = "";
+        statusFilter.dispatchEvent(new Event("styled-select-sync"));
 
         applyFilters();
     });
@@ -597,9 +571,10 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutButton.disabled = true;
 
         try {
-
+            const csrfResponse = await apiRequest(`${API_BASE}/auth/csrf`);
             await apiRequest(`${API_BASE}/auth/logout`, {
-                method: "POST"
+                method: "POST",
+                headers: { "X-XSRF-TOKEN": csrfResponse.token }
             });
 
         } catch (error) {
@@ -607,8 +582,7 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Sign-out request failed:", error);
 
         } finally {
-
-            window.location.href = "login.html";
+            window.location.href = "/login/login.html";
         }
     });
 
@@ -622,4 +596,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     initialisePage();
 
-});
+    return disposeDropdowns;
+}
+
+if (!window.appRouterActive) mount();

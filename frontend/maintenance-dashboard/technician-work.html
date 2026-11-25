@@ -3,15 +3,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="/shared/styles/motion.css">
+    <link rel="icon" href="/shared/images/favicon.ico" sizes="any">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Technician Work</title>
     <link rel="stylesheet" href="technician-work.css">
+    <link rel="stylesheet" href="role-navigation.css">
+    <script src="role-navigation.js" defer></script>
+    <link rel="stylesheet" href="/shared/styles/dropdowns.css">
 </head>
 <body>
 
     <header class="header">
         <div class="brand">
-            <div class="brand-icon">MF</div>
             <div>
                 <h1>Machine Fault Reporting</h1>
                 <p>Maintenance Response System</p>
@@ -26,10 +30,11 @@
         </div>
     </header>
 
-    <nav class="top-navigation" aria-label="Main navigation">
+    <nav class="top-navigation" aria-label="Main navigation" hidden>
         <a href="maintenance-dashboard.html" class="nav-link">
             Notification Inbox
         </a>
+        <a href="/fault-report/fault-report.html" class="nav-link">Fault Reporting</a>
         <a href="technician-work.html" class="nav-link active">
             Technician Work
         </a>
@@ -158,11 +163,15 @@
 
         <section class="status-section">
             <h3>Update Report Status</h3>
-            <p id="nextStatusDescription">
-                The next permitted status will appear here.
-            </p>
-            <button type="button" id="updateStatusButton" class="primary-button" disabled>
-                Update Status
+            <label for="statusSelect">Report status</label>
+            <select id="statusSelect" disabled>
+                <option value="ASSIGNED">Assigned</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="CLOSED">Closed</option>
+            </select>
+            <button type="button" id="saveStatusButton" class="primary-button" disabled>
+                Save Status
             </button>
         </section>
     </dialog>
@@ -171,6 +180,6 @@
         <p>Machine Fault Reporting and Maintenance Response System</p>
     </footer>
 
-    <script src="technician-work.js" defer></script>
+    <script type="module" src="technician-work.js"></script>
 </body>
 </html>

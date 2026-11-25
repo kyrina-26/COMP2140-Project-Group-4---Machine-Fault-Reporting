@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="/shared/images/favicon.ico" sizes="any">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Fault Reporting</title>
+    <link id="appShellStyles" rel="stylesheet" href="/shared/styles/app-shell.css">
+    <link rel="stylesheet" href="/shared/styles/dropdowns.css">
+    <script type="module" src="/shared/scripts/app-router.js"></script>
+</head>
+<body>
+    <div class="app-shell" id="appShell" aria-busy="true">
+        <header class="header">
+            <div class="brand">
+                <div>
+                    <h1>Machine Fault Reporting</h1>
+                    <p id="appSubtitle">Maintenance Response System</p>
+                </div>
+            </div>
+            <div class="account" id="appAccount"></div>
+        </header>
+        <nav class="top-navigation" id="appNavigation" aria-label="Main navigation"></nav>
+        <div id="appContent" class="app-content" aria-live="polite">
+            <p class="app-loading">Opening your workspace…</p>
+        </div>
+        <div id="appDialogs"></div>
+        <p id="appError" class="app-error" role="alert" hidden></p>
+    </div>
+</body>
+</html>

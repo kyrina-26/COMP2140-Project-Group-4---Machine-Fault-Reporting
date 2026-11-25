@@ -230,7 +230,7 @@ body {
 
 .filter-row label {
     color: var(--green);
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
 }
 
@@ -243,10 +243,6 @@ textarea {
     background: var(--white);
     color: var(--text);
     font: inherit;
-}
-
-.filter-row select {
-    width: min(250px, 100%);
 }
 
 select:focus,
@@ -519,6 +515,22 @@ button:disabled {
     line-height: 1.5;
 }
 
+.status-section label {
+    display: block;
+    margin: 12px 0 7px;
+    color: var(--green);
+    font-size: 13px;
+    font-weight: bold;
+}
+
+.status.is-error {
+    margin: 0 26px 12px;
+    border: 1px solid #edc2c2;
+    border-radius: 8px;
+    background: #fff2f2;
+    color: #8b2828;
+}
+
 .action-section form {
     display: grid;
     gap: 12px;
@@ -660,10 +672,6 @@ button:disabled {
     .filter-row {
         align-items: flex-start;
         flex-direction: column;
-    }
-
-    .filter-row select {
-        width: 100%;
     }
 
     .work-card {
