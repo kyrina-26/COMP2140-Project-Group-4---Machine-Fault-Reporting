@@ -45,5 +45,3 @@ services:
       mysql:
         condition: service_healthy
     entrypoint: ["/usr/local/bin/restore.sh"]
-
-\n
