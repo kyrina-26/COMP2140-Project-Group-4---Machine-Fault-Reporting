@@ -1,0 +1,356 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Management</title>
+    <link rel="stylesheet" href="machine-management.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">MF</div>
+            <div>
+                <h1>Machine Fault Reporting System</h1>
+                <p>Machine Management</p>
+            </div>
+        </div>
+
+        <div class="account">
+            <span id="userName">Administrator</span>
+            <button type="button" id="logoutButton" class="logout-button">
+                Sign Out
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="top-navigation">
+        <a href="maintenance-dashboard.html" class="nav-link">
+            Maintenance Dashboard
+        </a>
+        <a href="technician-work.html" class="nav-link">
+            Technician Work
+        </a>
+        <a href="fault-history.html" class="nav-link">
+            Fault History
+        </a>
+        <a href="production-reports.html" class="nav-link">
+            My Reports
+        </a>
+        <a href="machine-management.html" class="nav-link active">
+            Machine Management
+        </a>
+        <a href="maintenance-user.html" class="nav-link">
+            User Management
+        </a>
+    </nav>
+
+    <main class="dashboard">
+
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div>
+                <p class="eyebrow">SYSTEM ADMINISTRATION</p>
+                <h2>Machine Management</h2>
+                <p>
+                    Register machines, update machine information and
+                    monitor the operational status of equipment.
+                </p>
+            </div>
+
+            <div class="welcome-actions">
+                <button type="button" id="refreshButton" class="refresh-button">
+                    ↻ Refresh
+                </button>
+                <button type="button" id="addMachineButton" class="add-button">
+                    + Add Machine
+                </button>
+            </div>
+        </section>
+
+        <!-- Summary Cards -->
+        <section class="summary-grid">
+
+            <article class="summary-card">
+                <div class="summary-icon">🏭</div>
+                <div>
+                    <p>Total Machines</p>
+                    <h3 id="totalMachines">0</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon">✓</div>
+                <div>
+                    <p>Operational</p>
+                    <h3 id="operationalMachines">0</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon">🔧</div>
+                <div>
+                    <p>Under Maintenance</p>
+                    <h3 id="maintenanceMachines">0</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon">⚠</div>
+                <div>
+                    <p>Out of Service</p>
+                    <h3 id="outOfServiceMachines">0</h3>
+                </div>
+            </article>
+
+        </section>
+
+        <!-- Search and Filters -->
+        <section class="filter-panel">
+
+            <div class="panel-heading">
+                <h3>Find Machines</h3>
+                <p>Search and filter registered machines.</p>
+            </div>
+
+            <div class="filter-grid">
+
+                <div class="form-field">
+                    <label for="searchInput">Machine Search</label>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Enter machine code or name"
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="statusFilter">Machine Status</label>
+                    <select id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="OPERATIONAL">Operational</option>
+                        <option value="UNDER_MAINTENANCE">Under Maintenance</option>
+                        <option value="OUT_OF_SERVICE">Out of Service</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="button" id="searchButton">
+                        Search
+                    </button>
+                    <button type="button" id="clearButton" class="clear-button">
+                        Clear Filters
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Machine Table -->
+        <section class="machines-panel">
+
+            <div class="panel-heading">
+                <h3>Registered Machines</h3>
+                <p>Manage the equipment registered in the system.</p>
+            </div>
+
+            <p id="loadingMessage" class="status-message">
+                Loading machines...
+            </p>
+
+            <p id="errorMessage" class="error-message" hidden></p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Machine Code</th>
+                            <th>Machine Name</th>
+                            <th>Location</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Last Updated</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="machinesTableBody">
+                        <!-- Machine records will appear here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="emptyState" class="empty-state" hidden>
+                <h3>No Machines Found</h3>
+                <p>No machines match your search.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Add / Edit Machine Dialog -->
+    <dialog id="machineDialog" class="machine-dialog">
+
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow">MACHINE REGISTRATION</p>
+                <h2 id="dialogTitle">Add New Machine</h2>
+            </div>
+
+            <button type="button" id="closeDialogButton"
+                class="close-button">
+                ✕
+            </button>
+        </div>
+
+        <form id="machineForm">
+
+            <input type="hidden" id="machineId">
+
+            <div class="dialog-form-grid">
+
+                <div class="form-field">
+                    <label for="machineCode">Machine Code *</label>
+                    <input
+                        type="text"
+                        id="machineCode"
+                        placeholder="Example: MC-001"
+                        required
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="machineName">Machine Name *</label>
+                    <input
+                        type="text"
+                        id="machineName"
+                        placeholder="Enter machine name"
+                        required
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="machineLocation">Location *</label>
+                    <input
+                        type="text"
+                        id="machineLocation"
+                        placeholder="Enter machine location"
+                        required
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="machineDepartment">Department *</label>
+                    <input
+                        type="text"
+                        id="machineDepartment"
+                        placeholder="Enter department"
+                        required
+                    >
+                </div>
+
+                <div class="form-field full-width">
+                    <label for="machineDescription">Description</label>
+                    <textarea
+                        id="machineDescription"
+                        rows="3"
+                        placeholder="Enter additional machine information"
+                    ></textarea>
+                </div>
+
+                <div class="form-field full-width">
+                    <label for="machineStatus">Machine Status *</label>
+                    <select id="machineStatus" required>
+                        <option value="OPERATIONAL">Operational</option>
+                        <option value="UNDER_MAINTENANCE">Under Maintenance</option>
+                        <option value="OUT_OF_SERVICE">Out of Service</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div id="formError" class="form-error" hidden></div>
+
+            <div class="dialog-actions">
+                <button type="button" id="cancelButton" class="cancel-button">
+                    Cancel
+                </button>
+
+                <button type="submit" id="saveMachineButton">
+                    Save Machine
+                </button>
+            </div>
+
+        </form>
+
+    </dialog>
+
+    <!-- Machine Details Dialog -->
+    <dialog id="detailsDialog" class="machine-dialog">
+
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow">MACHINE INFORMATION</p>
+                <h2>Machine Details</h2>
+            </div>
+
+            <button type="button" id="closeDetailsButton"
+                class="close-button">
+                ✕
+            </button>
+        </div>
+
+        <div class="details-content">
+
+            <div class="detail-grid">
+
+                <div class="detail-field">
+                    <strong>Machine Code</strong>
+                    <p id="detailCode">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Machine Name</strong>
+                    <p id="detailName">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Location</strong>
+                    <p id="detailLocation">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Department</strong>
+                    <p id="detailDepartment">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Current Status</strong>
+                    <p id="detailStatus">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Last Updated</strong>
+                    <p id="detailUpdated">-</p>
+                </div>
+
+            </div>
+
+            <div class="detail-section">
+                <h3>Description</h3>
+                <p id="detailDescription">-</p>
+            </div>
+
+        </div>
+
+    </dialog>
+
+    <script src="machine-management.js"></script>
+
+</body>
+</html>

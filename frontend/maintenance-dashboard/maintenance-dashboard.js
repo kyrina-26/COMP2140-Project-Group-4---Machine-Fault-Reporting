@@ -1,3 +1,4 @@
+const summaryUnread = document.getElementById("summaryUnread");
 const accountName = document.getElementById("accountName");
 const inboxStatus = document.getElementById("inboxStatus");
 const notificationsList = document.getElementById("notificationsList");
@@ -60,6 +61,7 @@ function renderNotifications(notifications) {
 
     const unread = notifications.filter((notification) => !notification.readAt);
     unreadCount.textContent = String(unread.length);
+    summaryUnread.textContent = String(unread.length);
     notificationsList.replaceChildren();
     emptyState.hidden = notifications.length > 0;
 

@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Administration | Machine Fault Reporting System</title>
+    <link rel="stylesheet" href="maintenance-user.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="brand">
+        <h1>Machine Fault Reporting System</h1>
+        <p>User Administration</p>
+    </div>
+
+    <div class="account">
+        <span id="userName">Loading...</span>
+        <button id="logoutButton" class="logout-button">Sign Out</button>
+    </div>
+</header>
+
+<nav class="top-navigation">
+    <a href="maintenance-dashboard.html" class="nav-link">Dashboard</a>
+    <a href="technician-work.html" class="nav-link">Work Queue</a>
+    <a href="fault-history.html" class="nav-link">Fault History</a>
+    <a href="production-reports.html" class="nav-link">Production Reports</a>
+    <a href="machine-management.html" class="nav-link">Machine Management</a>
+    <a href="maintenance-user.html" class="nav-link active">User Administration</a>
+</nav>
+
+<main class="dashboard">
+
+    <section class="welcome-section">
+        <div>
+            <h2>User Administration</h2>
+            <p>View user accounts, register employees and manage system roles.</p>
+        </div>
+
+        <button id="addUserButton" class="add-button" hidden>
+            + Register New User
+        </button>
+    </section>
+
+    <section class="summary-grid">
+        <div class="summary-card">
+            <span>Total Users</span>
+            <strong id="totalUsers">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Active Users</span>
+            <strong id="activeUsers">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Inactive Users</span>
+            <strong id="inactiveUsers">0</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Maintenance Staff</span>
+            <strong id="maintenanceUsers">0</strong>
+        </div>
+    </section>
+
+    <section class="filter-panel">
+        <h3>Search and Filter Users</h3>
+
+        <div class="filter-grid">
+            <div class="filter-field">
+                <label for="searchInput">Search Users</label>
+                <input
+                    type="text"
+                    id="searchInput"
+                    placeholder="Search by name, email or employee ID"
+                >
+            </div>
+
+            <div class="filter-field">
+                <label for="roleFilter">Assigned Role</label>
+                <select id="roleFilter">
+                    <option value="">All Roles</option>
+                    <option value="ADMIN">Administrator</option>
+                    <option value="MAINTENANCE_MANAGER">Maintenance Manager</option>
+                    <option value="MAINTENANCE_SUPERVISOR">Maintenance Supervisor</option>
+                    <option value="MAINTENANCE_TECHNICIAN">Maintenance Technician</option>
+                    <option value="MACHINE_OPERATOR">Machine Operator</option>
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label for="statusFilter">Account Status</label>
+                <select id="statusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                </select>
+            </div>
+
+            <button id="refreshButton" class="refresh-button">
+                Refresh
+            </button>
+        </div>
+    </section>
+
+    <section class="users-panel">
+        <div class="panel-heading">
+            <h3>Registered Users</h3>
+            <span id="userCount">0 users</span>
+        </div>
+
+        <div id="message" class="message" role="status" aria-live="polite"></div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employee ID</th>
+                        <th>Full Name</th>
+                        <th>Email Address</th>
+                        <th>Department</th>
+                        <th>Assigned Role</th>
+                        <th>Account Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody id="usersTableBody">
+                    <tr>
+                        <td colspan="7" class="empty-state">Loading users...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<!-- Register / Edit User Dialog -->
+<dialog id="userDialog" class="user-dialog">
+    <form id="userForm">
+
+        <div class="dialog-heading">
+            <div>
+                <h2 id="dialogTitle">Register New User</h2>
+                <p>Enter the employee's information and assign a system role.</p>
+            </div>
+
+            <button
+                type="button"
+                id="closeDialogButton"
+                class="close-button"
+                aria-label="Close"
+            >&times;</button>
+        </div>
+
+        <input type="hidden" id="userId">
+
+        <div class="form-grid">
+
+            <div class="form-field">
+                <label for="firstName">First Name</label>
+                <input type="text" id="firstName" maxlength="60" required>
+            </div>
+
+            <div class="form-field">
+                <label for="lastName">Last Name</label>
+                <input type="text" id="lastName" maxlength="60" required>
+            </div>
+
+            <div class="form-field full-width">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" maxlength="150" required>
+            </div>
+
+            <div class="form-field">
+                <label for="employeeId">Employee ID</label>
+                <input type="text" id="employeeId" maxlength="30" required>
+            </div>
+
+            <div class="form-field">
+                <label for="department">Department</label>
+                <select id="department" required>
+                    <option value="">Select Department</option>
+                    <option value="Production">Production</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Administration">Administration</option>
+                </select>
+            </div>
+
+            <div class="form-field full-width">
+                <label for="userRole">Assigned System Role</label>
+                <select id="userRole" required>
+                    <option value="">Select a role</option>
+                    <option value="ADMIN">Administrator</option>
+                    <option value="MAINTENANCE_MANAGER">Maintenance Manager</option>
+                    <option value="MAINTENANCE_SUPERVISOR">Maintenance Supervisor</option>
+                    <option value="MAINTENANCE_TECHNICIAN">Maintenance Technician</option>
+                    <option value="MACHINE_OPERATOR">Machine Operator</option>
+                </select>
+            </div>
+
+            <div class="form-field full-width" id="passwordField">
+                <label for="password">Temporary Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    minlength="8"
+                    autocomplete="new-password"
+                >
+                <small>Enter a temporary password of at least 8 characters.</small>
+            </div>
+
+            <div class="form-field full-width">
+                <label for="accountStatus">Account Status</label>
+                <select id="accountStatus" required>
+                    <option value="ACTIVE">Active</option>
+                    <option value="INACTIVE">Inactive</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="dialog-actions">
+            <button type="button" id="cancelButton" class="cancel-button">
+                Cancel
+            </button>
+
+            <button type="submit" id="saveButton" class="save-button">
+                Create Account
+            </button>
+        </div>
+
+    </form>
+</dialog>
+
+<script src="maintenance-user.js"></script>
+</body>
+</html>
+

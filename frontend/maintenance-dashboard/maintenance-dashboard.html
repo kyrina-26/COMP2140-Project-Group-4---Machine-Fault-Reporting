@@ -4,49 +4,137 @@
     <meta charset="UTF-8">
     <link rel="icon" href="/shared/images/favicon.ico" sizes="any">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Maintenance Inbox</title>
+    <title>Maintenance Dashboard</title>
     <link rel="stylesheet" href="maintenance-dashboard.css">
 </head>
 <body>
+
     <header class="header">
-        <div>
-            <h1>Machine Fault Reporting</h1>
-            <p>Maintenance Response System</p>
+        <div class="brand">
+            <div class="brand-icon">MF</div>
+            <div>
+                <h1>Machine Fault Reporting</h1>
+                <p>Maintenance Response System</p>
+            </div>
         </div>
+
         <div class="account">
             <span id="accountName">Loading account...</span>
-            <button type="button" class="secondary-button" id="logoutButton">Sign out</button>
+            <button type="button" class="secondary-button" id="logoutButton">
+                Sign out
+            </button>
         </div>
     </header>
 
+    <nav class="top-navigation" aria-label="Main navigation">
+        <a href="maintenance-dashboard.html" class="nav-link active">
+            Notification Inbox
+        </a>
+        <a href="technician-work.html" class="nav-link">
+            Technician Work
+        </a>
+        <a href="fault-history.html" class="nav-link">
+            Fault History
+        </a>
+        <a href="production-reports.html" class="nav-link">
+            Production Reports
+        </a>
+        <a href="machine-management.html" class="nav-link">
+            Machine Management
+        </a>
+        <a href="maintenance-user.html" class="nav-link">
+            User Management
+        </a>
+    </nav>
+
     <main class="dashboard">
-        <section class="inbox-heading">
+
+        <section class="welcome-section">
             <div>
-                <p class="eyebrow">MAINTENANCE</p>
-                <h2>Notification Inbox</h2>
-                <p>New fault reports for your maintenance team appear here.</p>
+                <p class="eyebrow">MAINTENANCE DEPARTMENT</p>
+                <h2>Maintenance Dashboard</h2>
+                <p>
+                    Review incoming fault notifications and keep track of
+                    reported machine issues.
+                </p>
             </div>
-            <button type="button" class="refresh-button" id="refreshButton">Refresh inbox</button>
+
+            <button type="button" class="refresh-button" id="refreshButton">
+                <span aria-hidden="true">↻</span> Refresh
+            </button>
+        </section>
+
+        <section class="summary-grid" aria-label="Inbox summary">
+            <article class="summary-card">
+                <div class="summary-icon">!</div>
+                <div>
+                    <p>Unread Notifications</p>
+                    <h3 id="summaryUnread">--</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon orange-icon">✓</div>
+                <div>
+                    <p>Inbox</p>
+                    <h3>Notifications</h3>
+                </div>
+            </article>
         </section>
 
         <section class="inbox-panel" aria-labelledby="inboxTitle">
+
             <div class="inbox-toolbar">
-                <h3 id="inboxTitle">Notifications</h3>
-                <p><strong id="unreadCount">0</strong> unread</p>
+                <div>
+                    <h3 id="inboxTitle">Notification Inbox</h3>
+                    <p>New fault reports for your maintenance team appear here.</p>
+                </div>
+
+                <div class="unread-indicator">
+                    <strong id="unreadCount">0</strong>
+                    <span>unread</span>
+                </div>
             </div>
-            <p id="inboxStatus" class="status" role="status" aria-live="polite"></p>
-            <p id="emptyState" class="empty-state" hidden>No notifications yet.</p>
+
+            <p id="inboxStatus" class="status"
+               role="status" aria-live="polite"></p>
+
+            <p id="emptyState" class="empty-state" hidden>
+                <span class="empty-icon">✓</span>
+                No notifications yet.
+                <small>New fault notifications will appear here.</small>
+            </p>
+
             <div id="notificationsList" class="notifications-list"></div>
+
         </section>
     </main>
 
-    <dialog id="reportDialog" class="report-dialog" aria-labelledby="reportDialogTitle">
+    <footer class="footer">
+        <p>Machine Fault Reporting and Maintenance Response System</p>
+    </footer>
+
+    <dialog id="reportDialog" class="report-dialog"
+            aria-labelledby="reportDialogTitle">
+
         <div class="dialog-header">
-            <h2 id="reportDialogTitle">Fault Report</h2>
-            <button type="button" class="secondary-button close-button" id="closeReportDialog">Close</button>
+            <div>
+                <p class="eyebrow">REPORT DETAILS</p>
+                <h2 id="reportDialogTitle">Fault Report</h2>
+            </div>
+
+            <button type="button"
+                    class="close-button"
+                    id="closeReportDialog">
+                Close
+            </button>
         </div>
-        <p id="reportDialogStatus" class="status" role="status" aria-live="polite"></p>
+
+        <p id="reportDialogStatus" class="status"
+           role="status" aria-live="polite"></p>
+
         <div id="reportDetails"></div>
+
     </dialog>
 
     <script src="maintenance-dashboard.js" defer></script>

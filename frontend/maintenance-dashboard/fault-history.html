@@ -1,0 +1,179 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fault History</title>
+    <link rel="stylesheet" href="fault-history.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">MF</div>
+            <div>
+                <h1>Machine Fault Reporting</h1>
+                <p>Maintenance Response System</p>
+            </div>
+        </div>
+
+        <div class="account">
+            <span id="accountName">Loading account...</span>
+            <button type="button" class="secondary-button" id="logoutButton">
+                Sign out
+            </button>
+        </div>
+    </header>
+
+    <nav class="top-navigation" aria-label="Main navigation">
+        <a href="maintenance-dashboard.html" class="nav-link">Notification Inbox</a>
+        <a href="technician-work.html" class="nav-link">Technician Work</a>
+        <a href="fault-history.html" class="nav-link active">Fault History</a>
+        <a href="production-reports.html" class="nav-link">Production Reports</a>
+        <a href="machine-management.html" class="nav-link">Machine Management</a>
+        <a href="maintenance-user.html" class="nav-link">User Management</a>
+    </nav>
+
+    <main class="dashboard">
+
+        <section class="welcome-section">
+            <div>
+                <p class="eyebrow">REPORT MANAGEMENT</p>
+                <h2>Fault History and Search</h2>
+                <p>Search previous machine faults and review their maintenance history.</p>
+            </div>
+
+
+            <button type="button" class="refresh-button" id="refreshButton">
+                ↻ Refresh
+            </button>
+        </section>
+
+        <section class="search-panel">
+            <div class="panel-heading">
+                <h3>Search Fault Reports</h3>
+                <p>Use the filters below to narrow down your search.</p>
+            </div>
+
+            <form id="searchForm" class="filter-grid">
+
+                <div class="form-field">
+                    <label for="machineFilter">Machine identifier</label>
+                    <input
+                        type="text"
+                        id="machineFilter"
+                        placeholder="Enter machine code"
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="statusFilter">Report status</label>
+                    <select id="statusFilter">
+                        <option value="">All statuses</option>
+                        <option value="REPORTED">Reported</option>
+                        <option value="ASSIGNED">Assigned</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                        <option value="CLOSED">Closed</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="technicianFilter">Technician</label>
+                    <select id="technicianFilter">
+                        <option value="">All technicians</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="fromFilter">From date and time</label>
+                    <input type="datetime-local" id="fromFilter">
+                </div>
+
+                <div class="form-field">
+                    <label for="toFilter">To date and time</label>
+                    <input type="datetime-local" id="toFilter">
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="primary-button" id="searchButton">
+                        Search Reports
+                    </button>
+                    <button type="button" class="secondary-action" id="clearButton">
+                        Clear Filters
+                    </button>
+                </div>
+
+            </form>
+        </section>
+
+        <section class="results-panel">
+            <div class="results-heading">
+                <div>
+                    <h3>Search Results</h3>
+                    <p id="resultSummary">Reports will appear here.</p>
+                </div>
+                <span id="resultCount" class="result-count">0 reports</span>
+            </div>
+
+            <p id="pageStatus" class="status" role="status" aria-live="polite"></p>
+
+            <div id="emptyState" class="empty-state" hidden>
+                <div class="empty-icon">⌕</div>
+                <h3>No reports found</h3>
+                <p>Try changing your search filters.</p>
+            </div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Machine</th>
+                            <th>Reported By</th>
+                            <th>Technician</th>
+                            <th>Status</th>
+                            <th>Date Submitted</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <button type="button" id="previousButton" class="secondary-action">
+                    Previous
+                </button>
+                <span id="pageNumber">Page 0 of 0</span>
+                <button type="button" id="nextButton" class="secondary-action">
+                    Next
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <dialog id="historyDialog" class="history-dialog">
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow">REPORT RECORD</p>
+                <h2 id="dialogTitle">Fault Report</h2>
+            </div>
+            <button type="button" class="close-button" id="closeDialog">
+                Close
+            </button>
+        </div>
+
+        <p id="dialogStatus" class="status" role="status" aria-live="polite"></p>
+        <div id="reportDetails"></div>
+    </dialog>
+
+    <footer class="footer">
+        <p>Machine Fault Reporting and Maintenance Response System</p>
+    </footer>
+
+    <script src="fault-history.js" defer></script>
+</body>
+</html>

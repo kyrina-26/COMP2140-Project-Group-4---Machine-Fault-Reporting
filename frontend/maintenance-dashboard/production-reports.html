@@ -1,0 +1,275 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Production Report Tracking</title>
+    <link rel="stylesheet" href="production-reports.css">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">MF</div>
+            <div>
+                <h1>Machine Fault Reporting System</h1>
+                <p>Production Report Tracking</p>
+            </div>
+        </div>
+
+        <div class="account">
+            <span id="userName">Production User</span>
+            <button type="button" id="logoutButton" class="logout-button">
+                Sign Out
+            </button>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="top-navigation">
+        <a href="maintenance-dashboard.html" class="nav-link">
+            Maintenance Dashboard
+        </a>
+        <a href="technician-work.html" class="nav-link">
+            Technician Work
+        </a>
+        <a href="fault-history.html" class="nav-link">
+            Fault History
+        </a>
+        <a href="production-reports.html" class="nav-link active">
+            My Reports
+        </a>
+        <a href="machine-management.html" class="nav-link">
+            Machine Management
+        </a>
+        <a href="maintenance-user.html" class="nav-link">
+            User Management
+        </a>
+    </nav>
+
+    <main class="dashboard">
+
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div>
+                <p class="eyebrow">PRODUCTION DEPARTMENT</p>
+                <h2>My Fault Reports</h2>
+                <p>
+                    Track the progress of machine faults you have reported
+                    and view updates from the Maintenance Department.
+                </p>
+            </div>
+
+            <button type="button" id="refreshButton" class="refresh-button">
+                ↻ Refresh
+            </button>
+        </section>
+
+        <!-- Report Summary -->
+        <section class="summary-grid">
+
+            <article class="summary-card">
+                <div class="summary-icon">📋</div>
+                <div>
+                    <p>Total Reports</p>
+                    <h3 id="totalReports">0</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon">⏳</div>
+                <div>
+                    <p>Pending Review</p>
+                    <h3 id="pendingReports">0</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon">🔧</div>
+                <div>
+                    <p>In Progress</p>
+                    <h3 id="activeReports">0</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon">✓</div>
+                <div>
+                    <p>Resolved</p>
+                    <h3 id="resolvedReports">0</h3>
+                </div>
+            </article>
+
+        </section>
+
+        <!-- Filters -->
+        <section class="filter-panel">
+            <div class="panel-heading">
+                <h3>Find My Reports</h3>
+                <p>Search and filter your submitted machine fault reports.</p>
+            </div>
+
+            <div class="filter-grid">
+
+                <div class="form-field">
+                    <label for="searchInput">Search Report</label>
+                    <input
+                        type="text"
+                        id="searchInput"
+                        placeholder="Enter report ID or machine code"
+                    >
+                </div>
+
+                <div class="form-field">
+                    <label for="statusFilter">Report Status</label>
+                    <select id="statusFilter">
+                        <option value="">All Statuses</option>
+                        <option value="SUBMITTED">Submitted</option>
+                        <option value="UNDER_REVIEW">Under Review</option>
+                        <option value="ASSIGNED">Assigned</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="RESOLVED">Resolved</option>
+                        <option value="CLOSED">Closed</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="dateFilter">Date Reported</label>
+                    <input type="date" id="dateFilter">
+                </div>
+
+                <div class="filter-actions">
+                    <button type="button" id="searchButton">
+                        Search
+                    </button>
+                    <button type="button" id="clearButton" class="clear-button">
+                        Clear Filters
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Reports Table -->
+        <section class="reports-panel">
+
+            <div class="panel-heading">
+                <h3>My Submitted Reports</h3>
+                <p>View the latest status of your reported machine faults.</p>
+            </div>
+
+            <p id="loadingMessage" class="status-message">
+                Loading your reports...
+            </p>
+
+            <p id="errorMessage" class="error-message" hidden></p>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report ID</th>
+                            <th>Machine</th>
+                            <th>Date Reported</th>
+                            <th>Problem</th>
+                            <th>Assigned Technician</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="reportsTableBody">
+                        <!-- Reports will be loaded here using JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="emptyState" class="empty-state" hidden>
+                <h3>No Reports Found</h3>
+                <p>You have no fault reports matching your search.</p>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Report Details Dialog -->
+    <dialog id="reportDialog" class="report-dialog">
+
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow">REPORT DETAILS</p>
+                <h2>Fault Report Information</h2>
+            </div>
+
+            <button type="button" id="closeDialogButton"
+                class="close-button">
+                ✕
+            </button>
+        </div>
+
+        <div class="dialog-content">
+
+            <div class="detail-grid">
+
+                <div class="detail-field">
+                    <strong>Report ID</strong>
+                    <p id="detailReportId">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Machine</strong>
+                    <p id="detailMachine">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Date Reported</strong>
+                    <p id="detailDate">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Current Status</strong>
+                    <p id="detailStatus">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Assigned Technician</strong>
+                    <p id="detailTechnician">-</p>
+                </div>
+
+                <div class="detail-field">
+                    <strong>Last Updated</strong>
+                    <p id="detailUpdated">-</p>
+                </div>
+
+            </div>
+
+            <div class="detail-section">
+                <h3>Problem Description</h3>
+                <p id="detailDescription">-</p>
+            </div>
+
+            <div class="detail-section">
+                <h3>Maintenance Updates</h3>
+                <div id="maintenanceUpdates">
+                    No updates available.
+                </div>
+            </div>
+
+            <div class="detail-section">
+                <h3>Attached Evidence</h3>
+                <div id="reportEvidence">
+                    No evidence available.
+                </div>
+            </div>
+
+        </div>
+
+    </dialog>
+
+    <script src="production-reports.js"></script>
+
+</body>
+</html>

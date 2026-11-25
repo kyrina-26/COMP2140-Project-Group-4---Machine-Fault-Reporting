@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technician Work</title>
+    <link rel="stylesheet" href="technician-work.css">
+</head>
+<body>
+
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">MF</div>
+            <div>
+                <h1>Machine Fault Reporting</h1>
+                <p>Maintenance Response System</p>
+            </div>
+        </div>
+
+        <div class="account">
+            <span id="accountName">Loading account...</span>
+            <button type="button" class="secondary-button" id="logoutButton">
+                Sign out
+            </button>
+        </div>
+    </header>
+
+    <nav class="top-navigation" aria-label="Main navigation">
+        <a href="maintenance-dashboard.html" class="nav-link">
+            Notification Inbox
+        </a>
+        <a href="technician-work.html" class="nav-link active">
+            Technician Work
+        </a>
+        <a href="fault-history.html" class="nav-link">
+            Fault History
+        </a>
+        <a href="production-reports.html" class="nav-link">
+            Production Reports
+        </a>
+        <a href="machine-management.html" class="nav-link">
+            Machine Management
+        </a>
+        <a href="maintenance-user.html" class="nav-link">
+            User Management
+        </a>
+    </nav>
+
+    <main class="dashboard">
+
+        <section class="welcome-section">
+            <div>
+                <p class="eyebrow">MAINTENANCE DEPARTMENT</p>
+                <h2>My Assigned Work</h2>
+                <p>Review your assigned machine faults and record maintenance progress.</p>
+            </div>
+
+            <button type="button" id="refreshButton" class="primary-button">
+                ↻ Refresh
+            </button>
+        </section>
+
+        <section class="summary-grid">
+            <article class="summary-card">
+                <div class="summary-icon">📋</div>
+                <div>
+                    <p>Assigned Reports</p>
+                    <h3 id="assignedCount">--</h3>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <div class="summary-icon orange-icon">⚙</div>
+                <div>
+                    <p>In Progress</p>
+                    <h3 id="inProgressCount">--</h3>
+                </div>
+            </article>
+        </section>
+
+        <section class="work-panel">
+            <div class="panel-heading">
+                <div>
+                    <h3>Assigned Fault Reports</h3>
+                    <p>These reports are assigned to your technician account.</p>
+                </div>
+            </div>
+
+            <div class="filter-row">
+                <label for="statusFilter">Filter by status</label>
+                <select id="statusFilter">
+                    <option value="">All statuses</option>
+                    <option value="ASSIGNED">Assigned</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="RESOLVED">Resolved</option>
+                    <option value="CLOSED">Closed</option>
+                </select>
+            </div>
+
+            <p id="pageStatus" class="status" role="status" aria-live="polite"></p>
+
+            <div id="emptyState" class="empty-state" hidden>
+                <div class="empty-icon">✓</div>
+                <h3>No assigned reports</h3>
+                <p>New reports assigned to you will appear here.</p>
+            </div>
+
+            <div id="workList" class="work-list"></div>
+
+            <div class="pagination">
+                <button type="button" id="previousButton" class="secondary-action">
+                    Previous
+                </button>
+                <span id="pageNumber">Page 1</span>
+                <button type="button" id="nextButton" class="secondary-action">
+                    Next
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <dialog id="workDialog" class="work-dialog">
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow">MAINTENANCE REPORT</p>
+                <h2 id="dialogTitle">Fault Report</h2>
+            </div>
+            <button type="button" id="closeDialog" class="close-button">
+                Close
+            </button>
+        </div>
+
+        <p id="dialogStatus" class="status" role="status" aria-live="polite"></p>
+
+        <div id="reportDetails"></div>
+
+        <section class="action-section">
+            <h3>Record Maintenance Action</h3>
+            <p>Describe the maintenance work carried out on this machine.</p>
+
+            <form id="actionForm">
+                <label for="actionDescription">Maintenance notes</label>
+                <textarea
+                    id="actionDescription"
+                    rows="4"
+                    maxlength="10000"
+                    placeholder="Describe the inspection, repair or maintenance work..."
+                    required
+                ></textarea>
+
+                <button type="submit" id="saveActionButton" class="primary-button">
+                    Save Maintenance Action
+                </button>
+            </form>
+        </section>
+
+        <section class="status-section">
+            <h3>Update Report Status</h3>
+            <p id="nextStatusDescription">
+                The next permitted status will appear here.
+            </p>
+            <button type="button" id="updateStatusButton" class="primary-button" disabled>
+                Update Status
+            </button>
+        </section>
+    </dialog>
+
+    <footer class="footer">
+        <p>Machine Fault Reporting and Maintenance Response System</p>
+    </footer>
+
+    <script src="technician-work.js" defer></script>
+</body>
+</html>
