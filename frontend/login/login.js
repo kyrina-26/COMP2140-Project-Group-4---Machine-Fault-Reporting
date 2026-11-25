@@ -52,13 +52,9 @@ loginForm.addEventListener("submit", async (event) => {
             throw new Error("The login service did not return your account role.");
         }
 
-        const maintenanceRoles = [
-            "MAINTENANCE_TECHNICIAN",
-            "MAINTENANCE_SUPERVISOR",
-            "MAINTENANCE_MANAGER"
-        ];
+        const notificationRoles = ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"];
         window.location.assign(
-            maintenanceRoles.includes(role)
+            notificationRoles.includes(role)
                 ? "/maintenance-dashboard/maintenance-dashboard.html"
                 : "/fault-report/fault-report.html"
         );

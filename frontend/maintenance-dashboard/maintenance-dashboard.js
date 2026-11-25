@@ -9,11 +9,7 @@ const reportDialog = document.getElementById("reportDialog");
 const reportDialogTitle = document.getElementById("reportDialogTitle");
 const reportDialogStatus = document.getElementById("reportDialogStatus");
 const reportDetails = document.getElementById("reportDetails");
-const maintenanceRoles = [
-    "MAINTENANCE_TECHNICIAN",
-    "MAINTENANCE_SUPERVISOR",
-    "MAINTENANCE_MANAGER"
-];
+const notificationRoles = ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"];
 
 async function readJsonResponse(response) {
     if (response.status === 204) {
@@ -266,7 +262,7 @@ async function initializeDashboard() {
     try {
         const user = await requestJson("/api/auth/me");
 
-        if (!maintenanceRoles.includes(user.role)) {
+        if (!notificationRoles.includes(user.role)) {
             window.location.assign("/fault-report/fault-report.html");
             return;
         }
