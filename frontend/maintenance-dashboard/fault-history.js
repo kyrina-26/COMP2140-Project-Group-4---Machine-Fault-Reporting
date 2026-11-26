@@ -30,6 +30,10 @@ const dialogTitle = document.getElementById("dialogTitle");
 const dialogStatus = document.getElementById("dialogStatus");
 const reportDetails = document.getElementById("reportDetails");
 const closeReportButton = document.getElementById("closeReportButton");
+const closeReportConfirmation = document.getElementById("closeReportConfirmation");
+const closeReportConfirmationId = document.getElementById("closeReportConfirmationId");
+const cancelCloseReportButton = document.getElementById("cancelCloseReportButton");
+const confirmCloseReportButton = document.getElementById("confirmCloseReportButton");
 
 const pageSize = 20;
 let currentPage = 0;
@@ -317,6 +321,9 @@ async function openReport(reportId) {
     currentReportId = reportId;
     closeReportButton.hidden = true;
     closeReportButton.disabled = false;
+    closeReportConfirmation.hidden = true;
+    confirmCloseReportButton.disabled = false;
+    cancelCloseReportButton.disabled = false;
     dialogTitle.textContent = `Fault Report #${reportId}`;
     dialogStatus.textContent = "Loading report history...";
     reportDetails.replaceChildren();
@@ -462,12 +469,25 @@ async function signOut() {
     }
 }
 
+function showCloseReportConfirmation() {
+    if (currentUserRole !== "MAINTENANCE_SUPERVISOR" || !currentReportId) return;
+    closeReportConfirmationId.textContent = `#${currentReportId}`;
+    closeReportButton.hidden = true;
+    closeReportConfirmation.hidden = false;
+    confirmCloseReportButton.focus();
+}
+
+function cancelCloseReport() {
+    closeReportConfirmation.hidden = true;
+    closeReportButton.hidden = false;
+    closeReportButton.focus();
+}
+
 async function closeReport() {
     if (currentUserRole !== "MAINTENANCE_SUPERVISOR" || !currentReportId) return;
-    if (!window.confirm(`Close fault report #${currentReportId}?`)) return;
-
     const reportId = currentReportId;
-    closeReportButton.disabled = true;
+    confirmCloseReportButton.disabled = true;
+    cancelCloseReportButton.disabled = true;
     dialogStatus.textContent = "Closing report...";
 
     try {
@@ -488,7 +508,10 @@ async function closeReport() {
         dialogStatus.textContent = "Report closed.";
     } catch (error) {
         dialogStatus.textContent = error.message || "Unable to close the report.";
-        closeReportButton.disabled = false;
+        closeReportConfirmation.hidden = true;
+        closeReportButton.hidden = false;
+        confirmCloseReportButton.disabled = false;
+        cancelCloseReportButton.disabled = false;
     }
 }
 
@@ -553,7 +576,9 @@ document.getElementById("closeDialog").addEventListener("click", () => {
     historyDialog.close();
 });
 
-closeReportButton.addEventListener("click", closeReport);
+closeReportButton.addEventListener("click", showCloseReportConfirmation);
+cancelCloseReportButton.addEventListener("click", cancelCloseReport);
+confirmCloseReportButton.addEventListener("click", closeReport);
 logoutButton.addEventListener("click", signOut);
 
 initializePage();

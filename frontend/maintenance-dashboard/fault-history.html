@@ -176,6 +176,22 @@
             <button type="button" id="closeReportButton" hidden>
                 Close Report
             </button>
+            <section id="closeReportConfirmation" class="close-report-confirmation" hidden
+                     aria-labelledby="closeReportConfirmationTitle">
+                <div class="close-report-confirmation-copy">
+                    <p class="eyebrow">CONFIRM ACTION</p>
+                    <h3 id="closeReportConfirmationTitle">Close this report?</h3>
+                    <p>Report <strong id="closeReportConfirmationId"></strong> will be marked closed.</p>
+                </div>
+                <div class="close-report-confirmation-buttons">
+                    <button type="button" id="cancelCloseReportButton" class="secondary-action">
+                        Cancel
+                    </button>
+                    <button type="button" id="confirmCloseReportButton" class="confirm-close-button">
+                        Confirm Close
+                    </button>
+                </div>
+            </section>
         </div>
         <div id="reportDetails"></div>
     </dialog>

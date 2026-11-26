@@ -450,8 +450,6 @@ tbody tr:hover {
 }
 
 .dialog-actions {
-    display: flex;
-    justify-content: flex-start;
     padding: 16px 26px 0;
 }
 
@@ -463,6 +461,57 @@ tbody tr:hover {
 
 #closeReportButton:hover:not(:disabled) {
     border-color: var(--dark-orange);
+    background: var(--dark-orange);
+}
+
+.close-report-confirmation {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 22px;
+    padding: 18px 20px;
+    border: 1px solid #f3cfad;
+    border-left: 4px solid var(--orange);
+    border-radius: 12px;
+    background: #fff8f1;
+}
+
+.close-report-confirmation[hidden] {
+    display: none;
+}
+
+.close-report-confirmation-copy .eyebrow {
+    margin: 0 0 5px;
+    color: var(--dark-orange);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+}
+
+.close-report-confirmation-copy h3 {
+    margin: 0 0 5px;
+    color: var(--dark-green);
+    font-size: 17px;
+}
+
+.close-report-confirmation-copy > p:last-child {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.close-report-confirmation-buttons {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 10px;
+}
+
+.confirm-close-button {
+    background: var(--orange);
+    color: var(--white);
+}
+
+.confirm-close-button:hover:not(:disabled) {
     background: var(--dark-orange);
 }
 
@@ -676,6 +725,21 @@ tbody tr:hover {
 
     .dialog-header {
         padding: 17px;
+    }
+
+    .dialog-actions {
+        padding: 14px 17px 0;
+    }
+
+    .close-report-confirmation {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 16px;
+        padding: 16px;
+    }
+
+    .close-report-confirmation-buttons {
+        justify-content: flex-end;
     }
 
     .history-section {
