@@ -11,6 +11,12 @@ export function mount() {
     const closeDeleteUserDialog = document.getElementById("closeDeleteUserDialog");
     const cancelDeleteUser = document.getElementById("cancelDeleteUser");
     const confirmDeleteUser = document.getElementById("confirmDeleteUser");
+    const statusDialog = document.getElementById("statusDialog");
+    const statusDialogTitle = document.getElementById("statusDialogTitle");
+    const statusDialogMessage = document.getElementById("statusDialogMessage");
+    const closeStatusDialog = document.getElementById("closeStatusDialog");
+    const cancelStatusChange = document.getElementById("cancelStatusChange");
+    const confirmStatusChange = document.getElementById("confirmStatusChange");
     const userForm = document.getElementById("userForm");
     const message = document.getElementById("message");
     const formMessage = document.getElementById("formMessage");
@@ -25,6 +31,7 @@ export function mount() {
     let latestUsersRequest = 0;
     let searchTimer;
     let userPendingDeletion = null;
+    let userPendingStatusChange = null;
 
     /* API request helper */
 
@@ -160,7 +167,7 @@ export function mount() {
 
     /* Enable or disable a user account */
 
-    async function changeUserStatus(user) {
+    function changeUserStatus(user) {
         if (!canManageUsers) {
             showMessage("You are not authorized to change user status.", true);
             return;
@@ -171,14 +178,24 @@ export function mount() {
         const currentlyActive = isActive(user);
         const newStatus = !currentlyActive;
 
+        userPendingStatusChange = { user, newStatus };
+        statusDialogTitle.textContent = newStatus ? "Enable user account?" : "Disable user account?";
+        statusDialogMessage.textContent = newStatus
+            ? `This will restore sign-in access for ${name}.`
+            : `This will prevent ${name} from signing in. Their report history will be kept.`;
+        confirmStatusChange.textContent = newStatus ? "Enable account" : "Disable account";
+        confirmStatusChange.classList.toggle("status-disable-confirm", !newStatus);
+        statusDialog.showModal();
+    }
+
+    async function confirmUserStatusChange() {
+        if (!userPendingStatusChange) return;
+
+        const { user, newStatus } = userPendingStatusChange;
+        const userId = getUserId(user);
+        const name = getFullName(user);
         const action = newStatus ? "enable" : "disable";
-
-        const confirmed = window.confirm(
-            `Are you sure you want to ${action} ${name}'s account?`
-        );
-
-        if (!confirmed) return;
-
+        confirmStatusChange.disabled = true;
         try {
             await apiRequest(`/users/${encodeURIComponent(userId)}/status`, {
                 method: "PATCH",
@@ -194,12 +211,16 @@ export function mount() {
                     ? `${name}'s account has been enabled successfully.`
                     : `${name}'s account has been disabled successfully.`
             );
+            statusDialog.close();
 
         } catch (error) {
             showMessage(
                 `Unable to ${action} user account: ${error.message}`,
                 true
             );
+        }
+        finally {
+            confirmStatusChange.disabled = false;
         }
     }
 
@@ -327,9 +348,11 @@ export function mount() {
 
             const search = document.getElementById("searchInput").value.trim();
             const role = document.getElementById("roleFilter").value;
+            const status = document.getElementById("statusFilter").value;
 
             if (search) params.set("search", search);
             if (role) params.set("role", role);
+            if (status) params.set("enabled", status);
 
             const result = await apiRequest(`/users?${params}`);
 
@@ -575,6 +598,17 @@ export function mount() {
 
     confirmDeleteUser.addEventListener("click", confirmUserDeletion);
 
+    closeStatusDialog.addEventListener("click", () => statusDialog.close());
+    cancelStatusChange.addEventListener("click", () => statusDialog.close());
+    confirmStatusChange.addEventListener("click", confirmUserStatusChange);
+    statusDialog.addEventListener("close", () => {
+        userPendingStatusChange = null;
+        confirmStatusChange.disabled = false;
+    });
+    statusDialog.addEventListener("click", event => {
+        if (event.target === statusDialog) statusDialog.close();
+    });
+
     deleteUserDialog.addEventListener("close", () => {
         userPendingDeletion = null;
         confirmDeleteUser.disabled = false;
@@ -641,6 +675,9 @@ export function mount() {
         });
 
     document.getElementById("roleFilter")
+        .addEventListener("change", () => loadUsers(0));
+
+    document.getElementById("statusFilter")
         .addEventListener("change", () => loadUsers(0));
 
     document.getElementById("pageSize")

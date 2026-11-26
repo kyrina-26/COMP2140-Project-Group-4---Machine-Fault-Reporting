@@ -402,6 +402,42 @@ tbody tr:hover {
     line-height: 1.5;
 }
 
+.status-dialog .dialog-heading {
+    margin-bottom: 0;
+}
+
+.status-dialog .dialog-heading h2 {
+    margin-top: 0;
+}
+
+.status-confirm-button {
+    padding: 10px 16px;
+    border: 0;
+    border-radius: 8px;
+    background: #087443;
+    color: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.status-confirm-button:hover {
+    background: #065c35;
+}
+
+.status-confirm-button.status-disable-confirm {
+    background: #f28c28;
+}
+
+.status-confirm-button.status-disable-confirm:hover {
+    background: #d97616;
+}
+
+.status-confirm-button:disabled {
+    cursor: wait;
+    opacity: 0.65;
+}
+
 .delete-user-note {
     color: #68766d;
     font-size: 14px;

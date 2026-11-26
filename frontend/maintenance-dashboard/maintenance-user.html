@@ -90,6 +90,15 @@
                 </select>
             </div>
 
+            <div class="filter-field">
+                <label for="statusFilter">Account Status</label>
+                <select id="statusFilter">
+                    <option value="">All statuses</option>
+                    <option value="true">Active</option>
+                    <option value="false">Disabled</option>
+                </select>
+            </div>
+
             <button id="refreshButton" class="refresh-button">
                 Refresh
             </button>
@@ -223,6 +232,20 @@
         </div>
 
     </form>
+</dialog>
+
+<dialog id="statusDialog" class="user-dialog user-delete-dialog status-dialog">
+    <div class="dialog-heading">
+        <div>
+            <h2 id="statusDialogTitle">Change user account status?</h2>
+            <p id="statusDialogMessage"></p>
+        </div>
+        <button type="button" id="closeStatusDialog" class="close-button" aria-label="Close">&times;</button>
+    </div>
+    <div class="dialog-actions">
+        <button type="button" id="cancelStatusChange" class="cancel-button">Cancel</button>
+        <button type="button" id="confirmStatusChange" class="status-confirm-button">Confirm</button>
+    </div>
 </dialog>
 
 <dialog id="deleteUserDialog" class="user-dialog user-delete-dialog">

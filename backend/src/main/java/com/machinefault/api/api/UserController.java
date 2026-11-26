@@ -37,7 +37,8 @@ public class UserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) UserRole role) {
+            @RequestParam(required = false) UserRole role,
+            @RequestParam(required = false) Boolean enabled) {
 
         if (page < 0 || size < 1 || size > 100) {
             throw new IllegalArgumentException(
@@ -48,7 +49,13 @@ public class UserController {
         Specification<AppUser> filters = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            predicates.add(cb.isTrue(root.get("enabled")));
+            // Deleted accounts are tombstones used to preserve report history;
+            // disabled accounts remain manageable and can be enabled again.
+            predicates.add(cb.notLike(root.get("username"), "deleted-%"));
+
+            if (enabled != null) {
+                predicates.add(cb.equal(root.get("enabled"), enabled));
+            }
 
             if (role != null) {
                 predicates.add(cb.equal(root.get("role"), role));
@@ -137,7 +144,7 @@ public class UserController {
         AppUser user = users.findById(id)
             .orElseThrow(() -> new NoSuchElementException("User not found."));
 
-        if (body.enabled() && !user.isEnabled()) {
+        if (body.enabled() && user.getUsername().startsWith("deleted-")) {
             throw new IllegalArgumentException(
                 "Deleted user accounts cannot be re-enabled."
             );
