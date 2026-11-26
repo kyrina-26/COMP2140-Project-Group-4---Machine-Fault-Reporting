@@ -11,7 +11,7 @@ const reportDialog = document.getElementById("reportDialog");
 const reportDialogTitle = document.getElementById("reportDialogTitle");
 const reportDialogStatus = document.getElementById("reportDialogStatus");
 const reportDetails = document.getElementById("reportDetails");
-const notificationRoles = ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"];
+const notificationRoles = ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"];
 
 async function readJsonResponse(response) {
     if (response.status === 204) {

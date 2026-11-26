@@ -1,9 +1,9 @@
 const routeTable = {
     "/maintenance-dashboard/maintenance-dashboard.html": {
-        title: "Maintenance Dashboard",
+        title: "Notification Inbox",
         style: "/maintenance-dashboard/maintenance-dashboard.css?v=2",
         module: "/maintenance-dashboard/maintenance-dashboard.js",
-        roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"]
+        roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"]
     },
     "/maintenance-dashboard/technician-work.html": {
         title: "Technician Work",
