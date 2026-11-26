@@ -8,6 +8,11 @@ const API_BASE = "/api";
 
 const usersTableBody = document.getElementById("usersTableBody");
 const userDialog = document.getElementById("userDialog");
+const deleteUserDialog = document.getElementById("deleteUserDialog");
+const deleteUserMessage = document.getElementById("deleteUserMessage");
+const closeDeleteUserDialog = document.getElementById("closeDeleteUserDialog");
+const cancelDeleteUser = document.getElementById("cancelDeleteUser");
+const confirmDeleteUser = document.getElementById("confirmDeleteUser");
 const userForm = document.getElementById("userForm");
 const message = document.getElementById("message");
 const formMessage = document.getElementById("formMessage");
@@ -21,6 +26,7 @@ let totalElements = 0;
 let pageSize = 10;
 let latestUsersRequest = 0;
 let searchTimer;
+let userPendingDeletion = null;
 
 /* API request helper */
 
@@ -137,9 +143,6 @@ function clearFormMessage() {
 /* Summary cards */
 
 function updateSummary() {
-    const activeCount = users.filter(isActive).length;
-    const inactiveCount = users.length - activeCount;
-
     const maintenanceCount = users.filter(user =>
         [
             "MAINTENANCE_MANAGER",
@@ -149,8 +152,6 @@ function updateSummary() {
     ).length;
 
     document.getElementById("totalUsers").textContent = totalElements;
-    document.getElementById("activeUsers").textContent = activeCount;
-    document.getElementById("inactiveUsers").textContent = inactiveCount;
     document.getElementById("maintenanceUsers").textContent = maintenanceCount;
 }
 
@@ -217,17 +218,12 @@ function renderUsers() {
 
             editButton.addEventListener("click", () => openEditDialog(user));
 
-            const toggleButton = document.createElement("button");
-
-            toggleButton.type = "button";
-            toggleButton.className = "action-button toggle-button";
-            toggleButton.textContent = isActive(user)
-                ? "Deactivate"
-                : "Activate";
-
-            toggleButton.addEventListener("click", () => toggleUserStatus(user));
-
-            actionsCell.append(editButton, toggleButton);
+            const deleteButton = document.createElement("button");
+            deleteButton.type = "button";
+            deleteButton.className = "action-button toggle-button delete-button";
+            deleteButton.textContent = "Delete";
+            deleteButton.addEventListener("click", () => deleteUser(user));
+            actionsCell.append(editButton, deleteButton);
         } else {
             actionsCell.textContent = "View only";
         }
@@ -260,10 +256,8 @@ async function loadUsers(page = currentPage) {
         const params = new URLSearchParams({ page: String(page), size: String(pageSize) });
         const search = document.getElementById("searchInput").value.trim();
         const role = document.getElementById("roleFilter").value;
-        const status = document.getElementById("statusFilter").value;
         if (search) params.set("search", search);
         if (role) params.set("role", role);
-        if (status) params.set("enabled", String(status === "ACTIVE"));
 
         const result = await apiRequest(`/users?${params}`);
         if (requestId !== latestUsersRequest) return;
@@ -299,7 +293,6 @@ function resetUserForm() {
     document.getElementById("userId").value = "";
     document.getElementById("password").required = true;
     document.getElementById("passwordField").hidden = false;
-    document.getElementById("accountStatus").closest(".form-field").hidden = false;
 
     document.getElementById("dialogTitle").textContent = "Register New User";
     document.getElementById("saveButton").textContent = "Create Account";
@@ -339,9 +332,6 @@ function openEditDialog(user) {
     document.getElementById("employeeId").value = user.username ?? user.employeeId ?? "";
     document.getElementById("userRole").value = getRole(user);
     document.getElementById("userRole").dispatchEvent(new Event("styled-select-sync"));
-    document.getElementById("accountStatus").value = getStatus(user);
-    document.getElementById("accountStatus").dispatchEvent(new Event("styled-select-sync"));
-    document.getElementById("accountStatus").closest(".form-field").hidden = true;
 
     // Password changes use a separate secure process.
     document.getElementById("passwordField").hidden = true;
@@ -370,7 +360,6 @@ userForm.addEventListener("submit", async event => {
         email: document.getElementById("email").value.trim(),
         username: document.getElementById("employeeId").value.trim(),
         role: document.getElementById("userRole").value,
-        enabled: document.getElementById("accountStatus").value === "ACTIVE"
     };
 
     if (
@@ -392,7 +381,6 @@ userForm.addEventListener("submit", async event => {
         userData.password = password;
     } else {
         delete userData.username;
-        delete userData.enabled;
     }
 
     const saveButton = document.getElementById("saveButton");
@@ -410,7 +398,7 @@ userForm.addEventListener("submit", async event => {
         } else {
             await apiRequest("/users", {
                 method: "POST",
-                body: JSON.stringify({ username: userData.username, displayName: userData.displayName, email: userData.email, password: userData.password, role: userData.role, enabled: userData.enabled })
+                body: JSON.stringify({ username: userData.username, displayName: userData.displayName, email: userData.email, password: userData.password, role: userData.role })
             });
         }
 
@@ -433,40 +421,46 @@ userForm.addEventListener("submit", async event => {
     }
 });
 
-/* Activate or deactivate an account */
-
-async function toggleUserStatus(user) {
+async function deleteUser(user) {
     if (!canManageUsers) {
-        showMessage("You are not authorized to change account status.", true);
+        showMessage("You are not authorized to delete user accounts.", true);
         return;
     }
 
-    const userId = getUserId(user);
-    const newStatus = isActive(user) ? "INACTIVE" : "ACTIVE";
+    userPendingDeletion = user;
+    deleteUserMessage.textContent = `Delete ${getFullName(user)}'s account?`;
+    deleteUserDialog.showModal();
+}
 
-    const action = newStatus === "ACTIVE" ? "activate" : "deactivate";
+async function confirmUserDeletion() {
+    if (!userPendingDeletion) return;
 
-    if (!confirm(`Are you sure you want to ${action} this account?`)) {
-        return;
-    }
+    const userId = getUserId(userPendingDeletion);
+    const name = getFullName(userPendingDeletion);
+    confirmDeleteUser.disabled = true;
 
     try {
-        await apiRequest(`/users/${encodeURIComponent(userId)}/status`, {
-            method: "PATCH",
-            body: JSON.stringify({ enabled: newStatus === "ACTIVE" })
-        });
-
+        await apiRequest(`/users/${encodeURIComponent(userId)}`, { method: "DELETE" });
         await loadUsers();
-
-        showMessage(`User account ${action}d successfully.`);
-
+        showMessage(`${name}'s account was deleted. Sign-in is disabled and history was preserved.`);
+        deleteUserDialog.close();
     } catch (error) {
-        showMessage(
-            `Unable to change account status: ${error.message}`,
-            true
-        );
+        showMessage(`Unable to delete user account: ${error.message}`, true);
+    } finally {
+        confirmDeleteUser.disabled = false;
     }
 }
+
+closeDeleteUserDialog.addEventListener("click", () => deleteUserDialog.close());
+cancelDeleteUser.addEventListener("click", () => deleteUserDialog.close());
+confirmDeleteUser.addEventListener("click", confirmUserDeletion);
+deleteUserDialog.addEventListener("close", () => {
+    userPendingDeletion = null;
+    confirmDeleteUser.disabled = false;
+});
+deleteUserDialog.addEventListener("click", event => {
+    if (event.target === deleteUserDialog) deleteUserDialog.close();
+});
 
 /* Load logged-in user and check permissions */
 
@@ -524,9 +518,6 @@ document.getElementById("searchInput")
     });
 
 document.getElementById("roleFilter")
-    .addEventListener("change", () => loadUsers(0));
-
-document.getElementById("statusFilter")
     .addEventListener("change", () => loadUsers(0));
 
 document.getElementById("pageSize")

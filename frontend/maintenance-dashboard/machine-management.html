@@ -284,6 +284,24 @@
 
     </dialog>
 
+    <dialog id="deleteMachineDialog" class="machine-dialog confirmation-dialog">
+        <div class="dialog-header">
+            <div>
+                <p class="eyebrow">MACHINE MANAGEMENT</p>
+                <h2>Delete machine?</h2>
+            </div>
+            <button type="button" id="closeDeleteMachineDialog" class="close-button" aria-label="Close">✕</button>
+        </div>
+        <div class="confirmation-content">
+            <p id="deleteMachineMessage"></p>
+            <p class="confirmation-note">The machine will be removed from active lists. Existing fault history will be preserved.</p>
+            <div class="dialog-actions">
+                <button type="button" id="cancelDeleteMachine" class="cancel-button">Cancel</button>
+                <button type="button" id="confirmDeleteMachine" class="delete-button">Delete machine</button>
+            </div>
+        </div>
+    </dialog>
+
     <!-- Machine Details Dialog -->
     <dialog id="detailsDialog" class="machine-dialog">
 

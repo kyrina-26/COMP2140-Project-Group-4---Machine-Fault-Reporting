@@ -427,6 +427,11 @@ tbody tr:hover {
     background: var(--orange);
 }
 
+.delete-button {
+    background: #b33b2e;
+    color: var(--white);
+}
+
 .empty-state {
     padding: 42px 20px;
     color: var(--muted);
@@ -474,6 +479,29 @@ tbody tr:hover {
 
 .machine-dialog::backdrop {
     background: rgba(0, 0, 0, 0.55);
+}
+
+.confirmation-dialog {
+    width: min(480px, calc(100% - 32px));
+}
+
+.confirmation-content {
+    padding: 22px 26px 26px;
+}
+
+.confirmation-content p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.confirmation-content .confirmation-note {
+    margin-top: 10px;
+    color: #68756d;
+    font-size: 14px;
+}
+
+.confirmation-content .dialog-actions {
+    margin-top: 24px;
 }
 
 .dialog-header {

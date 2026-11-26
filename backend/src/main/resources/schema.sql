@@ -24,15 +24,50 @@ PREPARE account_flag_stmt FROM @account_flag_migration;
 EXECUTE account_flag_stmt;
 DEALLOCATE PREPARE account_flag_stmt;
 
+-- Disabled accounts are deleted accounts: release their login identifiers so they can be reused,
+-- while retaining the user rows and display names referenced by reports and audit history.
+UPDATE users
+SET username = CONCAT('deleted-', id, '-', UUID()), email = NULL
+WHERE enabled = FALSE AND username NOT LIKE 'deleted-%';
+
 -- Machines are stored separately so reports can validate their machine identifier.
 CREATE TABLE IF NOT EXISTS machines (
   id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-  identifier VARCHAR(80) NOT NULL UNIQUE,
+  identifier VARCHAR(80) NOT NULL,
   name VARCHAR(160) NOT NULL,
   location VARCHAR(120),
   status VARCHAR(32) NOT NULL DEFAULT 'OPERATIONAL',
-  active BOOLEAN NOT NULL DEFAULT TRUE
+  active BOOLEAN NOT NULL DEFAULT TRUE,
+  active_identifier VARCHAR(80) GENERATED ALWAYS AS (CASE WHEN active THEN identifier ELSE NULL END) STORED,
+  UNIQUE KEY uq_machines_active_identifier (active_identifier)
 );
+
+-- Let decommissioned identifiers be reused while keeping active identifiers unique.
+-- These checks also migrate databases created before active_identifier existed.
+SET @machine_active_identifier_exists = (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'machines' AND column_name = 'active_identifier');
+SET @machine_active_identifier_migration = IF(@machine_active_identifier_exists = 0,
+  'ALTER TABLE machines ADD COLUMN active_identifier VARCHAR(80) GENERATED ALWAYS AS (CASE WHEN active THEN identifier ELSE NULL END) STORED',
+  'SELECT 1');
+PREPARE machine_active_identifier_stmt FROM @machine_active_identifier_migration;
+EXECUTE machine_active_identifier_stmt;
+DEALLOCATE PREPARE machine_active_identifier_stmt;
+
+SET @machine_active_identifier_index_exists = (SELECT COUNT(*) FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'machines' AND index_name = 'uq_machines_active_identifier');
+SET @machine_active_identifier_index_migration = IF(@machine_active_identifier_index_exists = 0,
+  'ALTER TABLE machines ADD UNIQUE KEY uq_machines_active_identifier (active_identifier)',
+  'SELECT 1');
+PREPARE machine_active_identifier_index_stmt FROM @machine_active_identifier_index_migration;
+EXECUTE machine_active_identifier_index_stmt;
+DEALLOCATE PREPARE machine_active_identifier_index_stmt;
+
+-- Drop the previous UNIQUE(identifier) index, whatever its generated name was.
+SET @machine_legacy_identifier_index = (SELECT index_name FROM information_schema.statistics WHERE table_schema = DATABASE() AND table_name = 'machines' AND non_unique = 0 GROUP BY index_name HAVING COUNT(*) = 1 AND MAX(column_name) = 'identifier' LIMIT 1);
+SET @machine_legacy_identifier_migration = IF(@machine_legacy_identifier_index IS NULL,
+  'SELECT 1',
+  CONCAT('ALTER TABLE machines DROP INDEX `', REPLACE(@machine_legacy_identifier_index, '`', '``'), '`'));
+PREPARE machine_legacy_identifier_stmt FROM @machine_legacy_identifier_migration;
+EXECUTE machine_legacy_identifier_stmt;
+DEALLOCATE PREPARE machine_legacy_identifier_stmt;
 
 -- The current status is on the report; changes are also recorded in status_history below.
 CREATE TABLE IF NOT EXISTS fault_reports (

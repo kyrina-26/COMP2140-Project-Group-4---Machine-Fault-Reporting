@@ -22,6 +22,7 @@ public class AppUser {
     public Long getId(){return id;} public String getUsername(){return username;} public String getDisplayName(){return displayName;} public String getEmail(){return email;} public String getPasswordHash(){return passwordHash;} public UserRole getRole(){return role;} public boolean isEnabled(){return enabled;} public Instant getLockedUntil(){return lockedUntil;}
     public void updateProfile(String displayName,String email,UserRole role){this.displayName=displayName;this.email=email;this.role=role;}
     public void setEnabled(boolean enabled){this.enabled=enabled;}
+    public void deleteAccount(String replacementUsername){this.enabled=false;this.username=replacementUsername;this.email=null;}
     public void recordFailedLogin(Instant now){consecutiveFailedLogins++;if(consecutiveFailedLogins>=3){lockedUntil=now.plusSeconds(900);consecutiveFailedLogins=0;}}
     public void recordSuccessfulLogin(){consecutiveFailedLogins=0;lockedUntil=null;}
 }

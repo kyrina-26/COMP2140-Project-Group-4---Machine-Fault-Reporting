@@ -50,10 +50,16 @@ const disposeDropdowns = enhanceSelects(document);
     // Machine details dialog
     const detailsDialog = document.getElementById("detailsDialog");
     const closeDetailsButton = document.getElementById("closeDetailsButton");
+    const deleteMachineDialog = document.getElementById("deleteMachineDialog");
+    const deleteMachineMessage = document.getElementById("deleteMachineMessage");
+    const closeDeleteMachineDialog = document.getElementById("closeDeleteMachineDialog");
+    const cancelDeleteMachine = document.getElementById("cancelDeleteMachine");
+    const confirmDeleteMachine = document.getElementById("confirmDeleteMachine");
 
     // Store machine records
     let allMachines = [];
     let canManageMachines = false;
+    let machinePendingDeletion = null;
 
     // API request helper
     async function apiRequest(url, options = {}) {
@@ -281,7 +287,12 @@ const disposeDropdowns = enhanceSelects(document);
                 editButton.className = "edit-button";
                 editButton.textContent = "Edit";
                 editButton.addEventListener("click", () => editMachine(machine));
-                actionContainer.append(editButton);
+                const deleteButton = document.createElement("button");
+                deleteButton.type = "button";
+                deleteButton.className = "delete-button";
+                deleteButton.textContent = "Delete";
+                deleteButton.addEventListener("click", () => deleteMachine(machine));
+                actionContainer.append(editButton, deleteButton);
             }
             actionCell.appendChild(actionContainer);
 
@@ -475,6 +486,39 @@ const disposeDropdowns = enhanceSelects(document);
         }
     }
 
+    function deleteMachine(machine) {
+        machinePendingDeletion = machine;
+        deleteMachineMessage.textContent = `Delete ${getMachineName(machine)} (${getMachineCode(machine)})?`;
+        deleteMachineDialog.showModal();
+    }
+
+    async function confirmMachineDeletion() {
+        if (!machinePendingDeletion) return;
+
+        const machine = machinePendingDeletion;
+        const id = getMachineId(machine);
+        const name = getMachineName(machine);
+        confirmDeleteMachine.disabled = true;
+
+        try {
+            const csrfResponse = await apiRequest(`${API_BASE}/auth/csrf`);
+            await apiRequest(`${MACHINES_ENDPOINT}/${encodeURIComponent(id)}`, {
+                method: "DELETE",
+                headers: { "X-XSRF-TOKEN": csrfResponse.token }
+            });
+            await loadMachines();
+            loadingMessage.hidden = false;
+            loadingMessage.textContent = `${name} was removed from active machine lists. Existing fault history was preserved.`;
+            deleteMachineDialog.close();
+        } catch (error) {
+            errorMessage.hidden = false;
+            errorMessage.textContent = `Unable to delete machine: ${error.message}`;
+        }
+        finally {
+            confirmDeleteMachine.disabled = false;
+        }
+    }
+
     // Display a machine's details
     async function viewMachine(id) {
 
@@ -548,6 +592,14 @@ const disposeDropdowns = enhanceSelects(document);
         detailsDialog.close();
     });
 
+    closeDeleteMachineDialog.addEventListener("click", () => deleteMachineDialog.close());
+    cancelDeleteMachine.addEventListener("click", () => deleteMachineDialog.close());
+    confirmDeleteMachine.addEventListener("click", confirmMachineDeletion);
+    deleteMachineDialog.addEventListener("close", () => {
+        machinePendingDeletion = null;
+        confirmDeleteMachine.disabled = false;
+    });
+
     machineDialog.addEventListener("close", resetMachineForm);
 
     // Close dialogs when clicking outside
@@ -563,6 +615,10 @@ const disposeDropdowns = enhanceSelects(document);
         if (event.target === detailsDialog) {
             detailsDialog.close();
         }
+    });
+
+    deleteMachineDialog.addEventListener("click", event => {
+        if (event.target === deleteMachineDialog) deleteMachineDialog.close();
     });
 
     // Sign out

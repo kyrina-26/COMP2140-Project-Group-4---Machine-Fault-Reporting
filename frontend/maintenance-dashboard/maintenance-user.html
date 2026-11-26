@@ -58,16 +58,6 @@
         </div>
 
         <div class="summary-card">
-            <span>Active on Page</span>
-            <strong id="activeUsers">0</strong>
-        </div>
-
-        <div class="summary-card">
-            <span>Inactive on Page</span>
-            <strong id="inactiveUsers">0</strong>
-        </div>
-
-        <div class="summary-card">
             <span>Maintenance Staff on Page</span>
             <strong id="maintenanceUsers">0</strong>
         </div>
@@ -97,15 +87,6 @@
                     <option value="PRODUCTION_WORKER">Production Worker</option>
                     <option value="PRODUCTION_SUPERVISOR">Production Supervisor</option>
                     <option value="PRODUCTION_MANAGER">Production Manager</option>
-                </select>
-            </div>
-
-            <div class="filter-field">
-                <label for="statusFilter">Account Status</label>
-                <select id="statusFilter">
-                    <option value="">All Statuses</option>
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
                 </select>
             </div>
 
@@ -227,14 +208,6 @@
                 <small>Enter a temporary password of at least 12 characters.</small>
             </div>
 
-            <div class="form-field full-width">
-                <label for="accountStatus">Account Status</label>
-                <select id="accountStatus" required>
-                    <option value="ACTIVE">Active</option>
-                    <option value="INACTIVE">Inactive</option>
-                </select>
-            </div>
-
         </div>
 
         <p id="formMessage" class="form-message" role="alert" aria-live="assertive" hidden></p>
@@ -250,6 +223,21 @@
         </div>
 
     </form>
+</dialog>
+
+<dialog id="deleteUserDialog" class="user-dialog user-delete-dialog">
+    <div class="dialog-heading">
+        <div>
+            <h2>Delete user account?</h2>
+            <p id="deleteUserMessage"></p>
+        </div>
+        <button type="button" id="closeDeleteUserDialog" class="close-button" aria-label="Close">&times;</button>
+    </div>
+    <p class="delete-user-note">This disables sign-in and frees the username and email for a new account. Existing reports and audit history will keep the original display name.</p>
+    <div class="dialog-actions">
+        <button type="button" id="cancelDeleteUser" class="cancel-button">Cancel</button>
+        <button type="button" id="confirmDeleteUser" class="delete-user-button">Delete account</button>
+    </div>
 </dialog>
 
 <script type="module" src="maintenance-user.js"></script>
