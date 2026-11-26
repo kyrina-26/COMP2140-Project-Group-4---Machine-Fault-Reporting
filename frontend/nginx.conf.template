@@ -4,6 +4,8 @@ server {
     root /usr/share/nginx/html;
     absolute_redirect off;
 
+    client_max_body_size ${NGINX_MAX_BODY_SIZE};
+
     location /api/ {
         proxy_pass http://api:${API_CONTAINER_PORT};
         proxy_set_header Host $host;

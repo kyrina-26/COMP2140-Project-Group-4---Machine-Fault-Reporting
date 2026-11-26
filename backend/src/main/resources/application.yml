@@ -8,7 +8,7 @@ spring:
   servlet:
     multipart:
       max-file-size: ${APP_MAX_FILE_SIZE}
-      max-request-size: ${APP_MAX_FILE_SIZE}
+      max-request-size: ${APP_MAX_REQUEST_SIZE}
   # Database address and credentials are passed into the container as environment variables.
   datasource:
     url: ${SPRING_DATASOURCE_URL}
