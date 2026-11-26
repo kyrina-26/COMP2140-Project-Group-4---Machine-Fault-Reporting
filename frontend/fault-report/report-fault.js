@@ -1,4 +1,6 @@
 
+import QrScanner from "/shared/lib/qr-scanner/qr-scanner.min.js";
+
 export function mount() {
 const faultReportForm = document.getElementById("faultReportForm");
 const machineCodeInput = document.getElementById("machineCode");
@@ -6,12 +8,18 @@ const descriptionInput = document.getElementById("description");
 const formMessage = document.getElementById("formMessage");
 const submitButton = document.getElementById("submitButton");
 const scanButton = document.getElementById("scanButton");
+const stopScanButton = document.getElementById("stopScanButton");
+const qrReader = document.getElementById("qr-reader");
 const scanStatus = document.getElementById("scanStatus");
 const picturesInput = document.getElementById("pictures");
 const audioInput = document.getElementById("audio");
 const videoInput = document.getElementById("video");
 const accountName = document.getElementById("accountName");
 const logoutButton = document.getElementById("logoutButton");
+let qrScanner = null;
+let checkingScannedCode = false;
+
+QrScanner.WORKER_PATH = "/shared/lib/qr-scanner/qr-scanner-worker.min.js";
 
 function displayMessage(message, state = "") {
     formMessage.textContent = message;
@@ -98,9 +106,92 @@ function selectedFiles() {
     ];
 }
 
-scanButton.addEventListener("click", () => {
-    scanStatus.textContent =
-        "QR scanning is not connected yet. Please enter the machine code manually.";
+function stopScanner() {
+    if (qrScanner) {
+        qrScanner.stop();
+        qrScanner.destroy();
+        qrScanner = null;
+    }
+    qrReader.replaceChildren();
+    scanButton.hidden = false;
+    scanButton.disabled = false;
+    stopScanButton.hidden = true;
+}
+
+async function acceptScannedCode(rawValue) {
+    if (checkingScannedCode) return;
+    const identifier = rawValue.trim();
+    if (!identifier || identifier.length > 80 || /[\r\n]/.test(identifier)) {
+        scanStatus.textContent = "That QR code does not contain a valid machine code. You can enter the code manually.";
+        return;
+    }
+
+    checkingScannedCode = true;
+    scanStatus.textContent = "Checking machine code...";
+    try {
+        const machines = await requestJson("/api/machines");
+        const machine = machines.find(item => item.identifier === identifier);
+        if (!machine) {
+            machineCodeInput.value = "";
+            scanStatus.textContent = `No active machine matches “${identifier}”. Check the sticker or enter a code manually.`;
+            return;
+        }
+
+        machineCodeInput.value = machine.identifier;
+        scanStatus.textContent = `Machine found: ${machine.identifier} — ${machine.name}${machine.location ? ` (${machine.location})` : ""}.`;
+        stopScanner();
+        machineCodeInput.focus();
+    } catch (error) {
+        scanStatus.textContent = `${error.message} You can enter the machine code manually.`;
+        stopScanner();
+    } finally {
+        checkingScannedCode = false;
+    }
+}
+
+scanButton.addEventListener("click", async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+        scanStatus.textContent = "Camera access is unavailable here. Open this page over HTTPS on a supported device, or enter the code manually.";
+        return;
+    }
+
+    scanButton.disabled = true;
+    scanStatus.textContent = "Starting camera… Allow camera access when prompted.";
+    const video = document.createElement("video");
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("aria-label", "Camera view for scanning a machine QR code");
+    qrReader.replaceChildren(video);
+
+    try {
+        qrScanner = new QrScanner(video, result => acceptScannedCode(result.data), {
+            preferredCamera: "environment",
+            highlightScanRegion: true,
+            highlightCodeOutline: true,
+            returnDetailedScanResult: true
+        });
+        await qrScanner.start();
+        scanButton.hidden = true;
+        stopScanButton.hidden = false;
+        scanStatus.textContent = "Point the camera at the machine’s QR sticker.";
+    } catch (error) {
+        stopScanner();
+        const cameraDenied = error.name === "NotAllowedError" || error.name === "PermissionDeniedError";
+        scanStatus.textContent = cameraDenied
+            ? "Camera permission was denied. Allow camera access in your browser settings, or enter the machine code manually."
+            : "Could not start the camera. Check that this page uses HTTPS and that no other app is using the camera, or enter the code manually.";
+    }
+});
+
+stopScanButton.addEventListener("click", () => {
+    stopScanner();
+    scanStatus.textContent = "Camera stopped. You can scan again or enter the machine code manually.";
+});
+
+machineCodeInput.addEventListener("input", () => {
+    if (machineCodeInput.value.trim()) {
+        if (qrScanner) stopScanner();
+        scanStatus.textContent = "Machine code entered. The server will verify it when you submit the report.";
+    }
 });
 
 logoutButton.addEventListener("click", signOut);
@@ -108,6 +199,7 @@ loadAccount();
 
 faultReportForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    stopScanner();
     submitButton.disabled = true;
     displayMessage("Submitting report...", "loading");
 
@@ -177,6 +269,8 @@ faultReportForm.addEventListener("submit", async (event) => {
         submitButton.disabled = false;
     }
 });
+
+return stopScanner;
 }
 
 if (!window.appRouterActive) mount();
