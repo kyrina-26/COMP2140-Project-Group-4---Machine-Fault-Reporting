@@ -137,11 +137,33 @@ label {
 /* INPUT FIELDS */
 .input-group input {
     width: 100%;
+    min-width: 0;
     padding: 15px 0;
     border: none;
     outline: none;
     font-size: 16px;
     background: transparent;
+}
+
+.input-group .password-toggle {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 8px 0 8px 10px;
+    background: transparent;
+    color: #075c35;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.input-group .password-toggle:hover {
+    background: transparent;
+    color: #d66c12;
+    transform: none;
+    box-shadow: none;
 }
 
 .input-group:focus-within {

@@ -1,6 +1,16 @@
 const loginForm = document.getElementById("loginForm");
 const loginMessage = document.getElementById("loginMessage");
 const loginButton = loginForm.querySelector('button[type="submit"]');
+const passwordInput = document.getElementById("password");
+const togglePasswordButton = document.getElementById("togglePassword");
+
+togglePasswordButton.addEventListener("click", () => {
+    const shouldShow = passwordInput.type === "password";
+    passwordInput.type = shouldShow ? "text" : "password";
+    togglePasswordButton.textContent = shouldShow ? "Hide" : "Show";
+    togglePasswordButton.setAttribute("aria-label", `${shouldShow ? "Hide" : "Show"} password`);
+    togglePasswordButton.setAttribute("aria-pressed", String(shouldShow));
+});
 
 async function readJsonResponse(response) {
     const contentType = response.headers.get("content-type") || "";
