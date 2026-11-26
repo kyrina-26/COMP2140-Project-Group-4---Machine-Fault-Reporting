@@ -449,6 +449,23 @@ tbody tr:hover {
     background: rgba(0, 0, 0, 0.55);
 }
 
+.dialog-actions {
+    display: flex;
+    justify-content: flex-start;
+    padding: 16px 26px 0;
+}
+
+#closeReportButton {
+    border: 1px solid var(--orange);
+    background: var(--orange);
+    color: var(--white);
+}
+
+#closeReportButton:hover:not(:disabled) {
+    border-color: var(--dark-orange);
+    background: var(--dark-orange);
+}
+
 .dialog-header {
     display: flex;
     align-items: center;
@@ -464,7 +481,11 @@ tbody tr:hover {
 }
 
 .close-button {
-    background: var(--green);
+    background: var(--orange);
+}
+
+.close-button:hover:not(:disabled) {
+    background: var(--dark-orange);
 }
 
 .detail-grid {

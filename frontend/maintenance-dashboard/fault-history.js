@@ -29,10 +29,13 @@ const historyDialog = document.getElementById("historyDialog");
 const dialogTitle = document.getElementById("dialogTitle");
 const dialogStatus = document.getElementById("dialogStatus");
 const reportDetails = document.getElementById("reportDetails");
+const closeReportButton = document.getElementById("closeReportButton");
 
 const pageSize = 20;
 let currentPage = 0;
 let totalPages = 0;
+let currentUserRole = null;
+let currentReportId = null;
 
 async function readJsonResponse(response) {
     if (response.status === 204) {
@@ -278,7 +281,6 @@ async function loadReports() {
 async function loadTechnicians(role) {
     const allowedRoles = [
         "MAINTENANCE_SUPERVISOR",
-        "MAINTENANCE_MANAGER",
         "SYSTEM_ADMINISTRATOR"
     ];
 
@@ -312,6 +314,9 @@ async function loadTechnicians(role) {
 
 async function openReport(reportId) {
     historyDialog.showModal();
+    currentReportId = reportId;
+    closeReportButton.hidden = true;
+    closeReportButton.disabled = false;
     dialogTitle.textContent = `Fault Report #${reportId}`;
     dialogStatus.textContent = "Loading report history...";
     reportDetails.replaceChildren();
@@ -334,6 +339,9 @@ async function openReport(reportId) {
 function renderReportDetails(details) {
     const fault = details.fault;
 
+    currentReportId = fault.id;
+    closeReportButton.hidden = currentUserRole !== "MAINTENANCE_SUPERVISOR"
+        || fault.status === "CLOSED";
     dialogTitle.textContent = `Fault Report #${fault.id}`;
     reportDetails.replaceChildren();
 
@@ -454,10 +462,41 @@ async function signOut() {
     }
 }
 
+async function closeReport() {
+    if (currentUserRole !== "MAINTENANCE_SUPERVISOR" || !currentReportId) return;
+    if (!window.confirm(`Close fault report #${currentReportId}?`)) return;
+
+    const reportId = currentReportId;
+    closeReportButton.disabled = true;
+    dialogStatus.textContent = "Closing report...";
+
+    try {
+        const csrf = await requestJson("/api/auth/csrf");
+        if (!csrf.token) throw new Error("Unable to retrieve the security token.");
+
+        await requestJson(`/api/faults/${reportId}/status`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "X-XSRF-TOKEN": csrf.token
+            },
+            body: JSON.stringify({ status: "CLOSED" })
+        });
+
+        await loadReports();
+        await openReport(reportId);
+        dialogStatus.textContent = "Report closed.";
+    } catch (error) {
+        dialogStatus.textContent = error.message || "Unable to close the report.";
+        closeReportButton.disabled = false;
+    }
+}
+
 async function initializePage() {
     try {
         const user = await window.roleNavigationUserPromise;
 
+        currentUserRole = user.role;
         accountName.textContent = user.displayName;
 
         await loadTechnicians(user.role);
@@ -514,6 +553,7 @@ document.getElementById("closeDialog").addEventListener("click", () => {
     historyDialog.close();
 });
 
+closeReportButton.addEventListener("click", closeReport);
 logoutButton.addEventListener("click", signOut);
 
 initializePage();

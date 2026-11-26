@@ -106,10 +106,12 @@ function addDetailField(container, label, value) {
 }
 
 function updateStatusControl(status) {
-    statusSelect.value = status;
+    const reportIsClosed = currentReport?.status === "CLOSED";
+    statusSelect.value = reportIsClosed ? "" : status;
     statusSelect.dispatchEvent(new Event("change", { bubbles: true }));
-    statusSelect.disabled = !currentReport;
-    saveStatusButton.disabled = !currentReport || statusSelect.value === currentReport.status;
+    statusSelect.disabled = !currentReport || reportIsClosed;
+    saveStatusButton.disabled = !currentReport || reportIsClosed
+        || statusSelect.value === currentReport.status;
 }
 
 function setDialogMessage(text, isError = false) {
@@ -414,8 +416,10 @@ saveStatusButton.addEventListener("click", async () => {
     } catch (error) {
         setDialogMessage(error.message || "Unable to update report status.", true);
     } finally {
-        statusSelect.disabled = !currentReport;
-        saveStatusButton.disabled = !currentReport || statusSelect.value === currentReport.status;
+        const reportIsClosed = currentReport?.status === "CLOSED";
+        statusSelect.disabled = !currentReport || reportIsClosed;
+        saveStatusButton.disabled = !currentReport || reportIsClosed
+            || statusSelect.value === currentReport.status;
     }
 });
 
