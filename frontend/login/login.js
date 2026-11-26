@@ -68,12 +68,15 @@ loginForm.addEventListener("submit", async (event) => {
             // The authenticated session remains authoritative without this cache.
         }
 
-        const notificationRoles = ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"];
-        const destination = role === "MAINTENANCE_TECHNICIAN"
-            ? "/maintenance-dashboard/technician-work.html"
-            : notificationRoles.includes(role)
-                ? "/maintenance-dashboard/maintenance-dashboard.html"
-                : "/fault-report/fault-report.html";
+        const notificationRoles = ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"];
+        let destination = "/fault-report/fault-report.html";
+        if (role === "MAINTENANCE_TECHNICIAN") {
+            destination = "/maintenance-dashboard/technician-work.html";
+        } else if (role === "PRODUCTION_SUPERVISOR") {
+            destination = "/maintenance-dashboard/production-reports.html";
+        } else if (notificationRoles.includes(role)) {
+            destination = "/maintenance-dashboard/maintenance-dashboard.html";
+        }
         window.location.assign(`/app.html#${destination}`);
     } catch (error) {
         loginMessage.textContent = error.message || "Unable to contact the login service.";

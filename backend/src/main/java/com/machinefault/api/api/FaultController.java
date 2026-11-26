@@ -8,10 +8,10 @@ import jakarta.validation.Valid; import java.io.IOException; import java.util.Li
  private final FaultService service; private final AttachmentService attachments; private final FaultSubmissionService submissions;
  public FaultController(FaultService s,AttachmentService attachments,FaultSubmissionService submissions){service=s;this.attachments=attachments;this.submissions=submissions;}
  // @RequestBody reads JSON; @Valid checks its fields; Authentication identifies the logged-in reporter.
- @PostMapping @PreAuthorize("hasAnyAuthority('PRODUCTION_WORKER','PRODUCTION_SUPERVISOR','PRODUCTION_MANAGER','SYSTEM_ADMINISTRATOR')") public ResponseEntity<FaultView> create(@Valid @RequestBody CreateFault body,Authentication auth){return ResponseEntity.status(201).body(FaultView.of(service.create(body.machineIdentifier(),body.description(),auth.getName())));}
+ @PostMapping @PreAuthorize("hasAnyAuthority('PRODUCTION_WORKER','SYSTEM_ADMINISTRATOR')") public ResponseEntity<FaultView> create(@Valid @RequestBody CreateFault body,Authentication auth){return ResponseEntity.status(201).body(FaultView.of(service.create(body.machineIdentifier(),body.description(),auth.getName())));}
  // Multipart submissions commit the report only if every attachment also succeeds.
  @PostMapping(consumes=MediaType.MULTIPART_FORM_DATA_VALUE)
- @PreAuthorize("hasAnyAuthority('PRODUCTION_WORKER','PRODUCTION_SUPERVISOR','PRODUCTION_MANAGER','SYSTEM_ADMINISTRATOR')")
+ @PreAuthorize("hasAnyAuthority('PRODUCTION_WORKER','SYSTEM_ADMINISTRATOR')")
  public ResponseEntity<FaultView> createWithAttachments(@RequestParam String machineIdentifier,
          @RequestParam String description,@RequestParam("files") List<MultipartFile> files,
          Authentication auth)throws IOException {
@@ -21,5 +21,5 @@ import jakarta.validation.Valid; import java.io.IOException; import java.util.Li
   return ResponseEntity.status(201).body(FaultView.of(submissions.create(machineIdentifier,description,auth.getName(),files)));
  }
  // The file bytes go to file storage; AttachmentService saves their report link and metadata in MySQL.
- @PostMapping(value="/{id}/attachments",consumes=MediaType.MULTIPART_FORM_DATA_VALUE) @PreAuthorize("hasAnyAuthority('PRODUCTION_WORKER','PRODUCTION_SUPERVISOR','SYSTEM_ADMINISTRATOR')") public ResponseEntity<AttachmentView> attach(@PathVariable Long id,@RequestPart("file") MultipartFile file,Authentication auth)throws IOException{return ResponseEntity.status(201).body(AttachmentView.of(attachments.upload(id,file,auth.getName())));}
+ @PostMapping(value="/{id}/attachments",consumes=MediaType.MULTIPART_FORM_DATA_VALUE) @PreAuthorize("hasAnyAuthority('PRODUCTION_WORKER','SYSTEM_ADMINISTRATOR')") public ResponseEntity<AttachmentView> attach(@PathVariable Long id,@RequestPart("file") MultipartFile file,Authentication auth)throws IOException{return ResponseEntity.status(201).body(AttachmentView.of(attachments.upload(id,file,auth.getName())));}
 }

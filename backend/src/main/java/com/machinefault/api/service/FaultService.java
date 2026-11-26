@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.*;
+import org.springframework.security.access.AccessDeniedException;
 
 // Applies fault workflow rules and coordinates repositories and notifications.
 @Service
@@ -112,12 +113,7 @@ public class FaultService {
         AppUser u = user(username);
         UserRole role = u.getRole();
 
-        boolean productionRole =
-            role == UserRole.PRODUCTION_WORKER
-            || role == UserRole.PRODUCTION_SUPERVISOR
-            || role == UserRole.PRODUCTION_MANAGER;
-
-        if (productionRole &&
+        if (role == UserRole.PRODUCTION_WORKER &&
                 !r.getReporter().getId().equals(u.getId())) {
             throw new NoSuchElementException("Fault report not found.");
         }
@@ -181,7 +177,7 @@ public class FaultService {
         return r;
     }
 
-    // Maintenance roles may choose any post-assignment status.
+    // Technicians may update assigned work, but only a maintenance supervisor may close it.
     @Transactional
     public FaultReport changeStatus(
             Long id,
@@ -190,6 +186,14 @@ public class FaultService {
 
         FaultReport r = get(id);
         AppUser by = user(actor);
+
+        if (next == FaultStatus.CLOSED
+                && by.getRole() != UserRole.MAINTENANCE_SUPERVISOR) {
+
+            throw new AccessDeniedException(
+                "Only a maintenance supervisor can close a fault report."
+            );
+        }
 
         if (by.getRole() == UserRole.MAINTENANCE_TECHNICIAN
                 && (r.getAssignedTechnician() == null

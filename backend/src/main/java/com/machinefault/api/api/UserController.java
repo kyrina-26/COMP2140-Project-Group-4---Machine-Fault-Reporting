@@ -210,7 +210,7 @@ public class UserController {
     // Returns all enabled Maintenance Technicians,
     // regardless of whether they are currently logged in.
     @GetMapping("/technicians")
-    @PreAuthorize("hasAnyAuthority('MAINTENANCE_SUPERVISOR','MAINTENANCE_MANAGER','SYSTEM_ADMINISTRATOR')")
+    @PreAuthorize("hasAnyAuthority('MAINTENANCE_SUPERVISOR','SYSTEM_ADMINISTRATOR')")
     public List<UserView> technicians() {
 
         return users.findByRoleAndEnabled(

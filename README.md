@@ -18,10 +18,10 @@ The Machine Fault Reporting and Maintenance Response System helps Production and
 - **Role-based accounts and sign-in** — Users sign in with accounts managed by an administrator. Production staff, maintenance staff, technicians, and administrators see the tools relevant to their work.
 - **Machine fault reporting** — Production users identify a machine, describe the fault, and submit a report. Machine identifiers can be entered or scanned from a QR code.
 - **Photo, audio, and video evidence** — Reports can include media attachments to help explain the fault.
-- **Notifications** — New reports and maintenance updates appear in the maintenance inbox; reporters receive status-change notifications in their inbox. Users can review and mark notifications as read.
+- **Notifications** — Production workers receive status-change and anonymous technician-assignment notifications for their own reports. Production supervisors receive notifications across Production and can review all reports; maintenance supervisors and administrators receive maintenance workflow notifications.
 - **Technician assignment** — Maintenance staff can assign reported faults to currently signed-in technicians and review reports awaiting assignment.
 - **Technician work tracking** — Technicians can review assigned faults, update report status, and record inspection or repair actions.
-- **Production report tracking** — Production users can view their submitted reports, search and filter them, and check status, technician assignment, maintenance updates, and attached evidence.
+- **Production report tracking** — Production supervisors can search reports across Production and review their status, anonymous technician assignment, and attached evidence. Production workers use the notification inbox to follow updates on their own reports.
 - **Fault history and search** — Staff can search historical reports using machine, status, technician, and date filters, and open report details.
 - **Machine management** — Administrators can register machines, update their details and status, search and filter active machines, and decommission machines while preserving their fault history.
 - **User management** — Administrators can register users, assign roles, update account details, and search and filter accounts. Deleting an account permanently disables sign-in while preserving its report history.

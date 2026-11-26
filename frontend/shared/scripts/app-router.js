@@ -2,8 +2,8 @@ const routeTable = {
     "/maintenance-dashboard/maintenance-dashboard.html": {
         title: "Notification Inbox",
         style: "/maintenance-dashboard/maintenance-dashboard.css?v=2",
-        module: "/maintenance-dashboard/maintenance-dashboard.js",
-        roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"]
+        module: "/maintenance-dashboard/maintenance-dashboard.js?v=2",
+        roles: ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR"]
     },
     "/maintenance-dashboard/technician-work.html": {
         title: "Technician Work",
@@ -14,20 +14,20 @@ const routeTable = {
     "/maintenance-dashboard/fault-history.html": {
         title: "Fault History",
         style: "/maintenance-dashboard/fault-history.css",
-        module: "/maintenance-dashboard/fault-history.js",
-        roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"]
+        module: "/maintenance-dashboard/fault-history.js?v=2",
+        roles: ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"]
     },
     "/maintenance-dashboard/assign-technicians.html": {
         title: "Assign Technicians",
         style: "/maintenance-dashboard/assign-technicians.css",
         module: "/maintenance-dashboard/assign-technicians.js",
-        roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"]
+        roles: ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"]
     },
     "/maintenance-dashboard/production-reports.html": {
         title: "Production Report Tracking",
         style: "/maintenance-dashboard/production-reports.css",
-        module: "/maintenance-dashboard/production-reports.js",
-        roles: ["PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"]
+        module: "/maintenance-dashboard/production-reports.js?v=2",
+        roles: ["PRODUCTION_SUPERVISOR"]
     },
     "/maintenance-dashboard/machine-management.html": {
         title: "Machine Management",
@@ -45,7 +45,7 @@ const routeTable = {
         title: "Report Machine Fault",
         style: "/fault-report/fault-report.css?v=2",
         module: "/fault-report/report-fault.js",
-        roles: ["PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"]
+        roles: ["PRODUCTION_WORKER"]
     }
 };
 
@@ -62,12 +62,10 @@ const navigationItems = [
 
 const roleHome = {
     MAINTENANCE_SUPERVISOR: "/maintenance-dashboard/maintenance-dashboard.html",
-    MAINTENANCE_MANAGER: "/maintenance-dashboard/maintenance-dashboard.html",
     SYSTEM_ADMINISTRATOR: "/maintenance-dashboard/maintenance-dashboard.html",
     MAINTENANCE_TECHNICIAN: "/maintenance-dashboard/technician-work.html",
     PRODUCTION_WORKER: "/fault-report/fault-report.html",
-    PRODUCTION_SUPERVISOR: "/fault-report/fault-report.html",
-    PRODUCTION_MANAGER: "/fault-report/fault-report.html"
+    PRODUCTION_SUPERVISOR: "/maintenance-dashboard/production-reports.html",
 };
 
 const shell = document.getElementById("appShell");

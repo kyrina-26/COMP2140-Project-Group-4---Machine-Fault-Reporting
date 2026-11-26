@@ -115,12 +115,10 @@ export function mount() {
     function displayRole(role) {
         const roles = {
             SYSTEM_ADMINISTRATOR: "Administrator",
-            MAINTENANCE_MANAGER: "Maintenance Manager",
             MAINTENANCE_SUPERVISOR: "Maintenance Supervisor",
             MAINTENANCE_TECHNICIAN: "Maintenance Technician",
             PRODUCTION_WORKER: "Production Worker",
             PRODUCTION_SUPERVISOR: "Production Supervisor",
-            PRODUCTION_MANAGER: "Production Manager"
         };
 
         return roles[role] || String(role).replaceAll("_", " ");
@@ -155,7 +153,6 @@ export function mount() {
     function updateSummary() {
         const maintenanceCount = users.filter(user =>
             [
-                "MAINTENANCE_MANAGER",
                 "MAINTENANCE_SUPERVISOR",
                 "MAINTENANCE_TECHNICIAN"
             ].includes(getRole(user))

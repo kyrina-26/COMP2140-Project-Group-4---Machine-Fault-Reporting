@@ -1,9 +1,9 @@
 const pageRoles = {
-    "maintenance-dashboard.html": ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"],
+    "maintenance-dashboard.html": ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR"],
     "technician-work.html": ["MAINTENANCE_TECHNICIAN"],
-    "fault-history.html": ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"],
-    "production-reports.html": ["PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"],
-    "fault-report.html": ["PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"],
+    "fault-history.html": ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR"],
+    "production-reports.html": ["PRODUCTION_SUPERVISOR"],
+    "fault-report.html": ["PRODUCTION_WORKER"],
     "machine-management.html": ["SYSTEM_ADMINISTRATOR"],
     "maintenance-user.html": ["SYSTEM_ADMINISTRATOR"]
 };
@@ -21,8 +21,7 @@ const navigationLinks = [
 const roleHome = {
     MAINTENANCE_TECHNICIAN: "technician-work.html",
     PRODUCTION_WORKER: "/fault-report/fault-report.html",
-    PRODUCTION_SUPERVISOR: "/fault-report/fault-report.html",
-    PRODUCTION_MANAGER: "/fault-report/fault-report.html"
+    PRODUCTION_SUPERVISOR: "/maintenance-dashboard/production-reports.html",
 };
 
 const pageAssets = {

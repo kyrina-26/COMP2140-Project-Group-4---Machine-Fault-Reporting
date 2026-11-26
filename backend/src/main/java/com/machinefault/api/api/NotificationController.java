@@ -1,7 +1,7 @@
 package com.machinefault.api.api;
 import com.machinefault.api.api.ApiModels.NotificationItem; import com.machinefault.api.repo.UserRepository; import com.machinefault.api.service.NotificationService; import java.util.*; import org.springframework.http.ResponseEntity; import org.springframework.security.access.prepost.PreAuthorize; import org.springframework.security.core.Authentication; import org.springframework.web.bind.annotation.*;
 // Each request is scoped to the logged-in user's own in-app notifications.
-@RestController @RequestMapping("/api/notifications") @PreAuthorize("hasAnyAuthority('MAINTENANCE_SUPERVISOR','MAINTENANCE_MANAGER','SYSTEM_ADMINISTRATOR','PRODUCTION_WORKER','PRODUCTION_SUPERVISOR','PRODUCTION_MANAGER')") public class NotificationController {
+@RestController @RequestMapping("/api/notifications") @PreAuthorize("hasAnyAuthority('MAINTENANCE_SUPERVISOR','SYSTEM_ADMINISTRATOR','PRODUCTION_WORKER','PRODUCTION_SUPERVISOR')") public class NotificationController {
  private final NotificationService notificationService;private final UserRepository users;
  public NotificationController(NotificationService n,UserRepository u){notificationService=n;users=u;}
  @GetMapping public List<NotificationItem> list(Authentication auth){Long id=users.findByUsername(auth.getName()).orElseThrow().getId();return notificationService.listForUser(id).stream().map(NotificationItem::of).toList();}

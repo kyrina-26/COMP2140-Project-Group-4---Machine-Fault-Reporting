@@ -91,6 +91,10 @@ async function loadAccount() {
         const user = window.roleNavigationUserPromise
             ? await window.roleNavigationUserPromise
             : await requestJson("/api/auth/me");
+        if (user.role === "PRODUCTION_SUPERVISOR") {
+            window.location.replace("/app.html#/maintenance-dashboard/production-reports.html");
+            return;
+        }
         accountName.textContent = user.displayName;
     } catch (error) {
         displayMessage(error.message || "Unable to verify your session.", "error");

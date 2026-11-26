@@ -12,6 +12,10 @@ CREATE TABLE IF NOT EXISTS users (
   enabled BOOLEAN NOT NULL DEFAULT TRUE
 );
 
+-- Fold accounts from retired manager roles into their remaining supervisor roles.
+UPDATE users SET role = 'MAINTENANCE_SUPERVISOR' WHERE role = 'MAINTENANCE_MANAGER';
+UPDATE users SET role = 'PRODUCTION_SUPERVISOR' WHERE role = 'PRODUCTION_MANAGER';
+
 -- Keep the account login flag under its established name, including on older databases.
 SET @user_enabled_exists = (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'enabled');
 SET @user_active_exists = (SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'users' AND column_name = 'active');

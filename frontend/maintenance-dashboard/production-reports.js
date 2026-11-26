@@ -180,13 +180,17 @@ const disposeDropdowns = enhanceSelects(document);
 
             const user = data?.user ?? data?.data ?? data;
 
-            if (user && user.fullName) {
-                userName.textContent = user.fullName;
-            } else if (user && user.name) {
-                userName.textContent = user.name;
+            if (user?.role !== "PRODUCTION_SUPERVISOR") {
+                window.location.replace("/app.html");
+                return false;
             }
+
+            userName.textContent = user.displayName ?? user.fullName ?? user.name ?? "Production Supervisor";
+            return true;
         } catch (error) {
             console.error("Unable to load user information:", error);
+            window.location.replace("/login/login.html");
+            return false;
         }
     }
 
@@ -238,6 +242,9 @@ const disposeDropdowns = enhanceSelects(document);
 
             // Machine
             row.appendChild(createCell(getMachine(report)));
+
+            // Reporter
+            row.appendChild(createCell(report.reporterName));
 
             // Date reported
             row.appendChild(createCell(formatDate(getReportDate(report))));
@@ -312,7 +319,7 @@ const disposeDropdowns = enhanceSelects(document);
             loadingMessage.hidden = true;
             errorMessage.hidden = false;
             errorMessage.textContent =
-                `Unable to load your reports: ${error.message}`;
+                `Unable to load production reports: ${error.message}`;
 
             reportsTableBody.replaceChildren();
             emptyState.hidden = true;
@@ -333,11 +340,13 @@ const disposeDropdowns = enhanceSelects(document);
         const filteredReports = allReports.filter(report => {
             const reportId = String(getReportId(report)).toLowerCase();
             const machine = String(getMachine(report)).toLowerCase();
+            const reporter = String(report.reporterName ?? "").toLowerCase();
 
             const matchesSearch =
                 !searchTerm ||
                 reportId.includes(searchTerm) ||
-                machine.includes(searchTerm);
+                machine.includes(searchTerm) ||
+                reporter.includes(searchTerm);
 
             const matchesStatus =
                 !selectedStatus ||
@@ -538,8 +547,7 @@ const disposeDropdowns = enhanceSelects(document);
 
     // Initialise page
     async function initialisePage() {
-        await loadUser();
-        await loadReports();
+        if (await loadUser()) await loadReports();
     }
 
     initialisePage();

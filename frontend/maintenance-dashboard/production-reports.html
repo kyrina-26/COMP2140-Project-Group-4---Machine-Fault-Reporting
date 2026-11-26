@@ -60,10 +60,9 @@
         <section class="welcome-section">
             <div>
                 <p class="eyebrow">PRODUCTION DEPARTMENT</p>
-                <h2>My Fault Reports</h2>
+                <h2>All Production Fault Reports</h2>
                 <p>
-                    Track the progress of machine faults you have reported
-                    and view updates from the Maintenance Department.
+                    Review faults reported across Production and track their maintenance status.
                 </p>
             </div>
 
@@ -160,12 +159,12 @@
         <section class="reports-panel">
 
             <div class="panel-heading">
-                <h3>My Submitted Reports</h3>
-                <p>View the latest status of your reported machine faults.</p>
+                <h3>All Reported Faults</h3>
+                <p>Search reports submitted by production workers and supervisors.</p>
             </div>
 
             <p id="loadingMessage" class="status-message">
-                Loading your reports...
+                Loading production reports...
             </p>
 
             <p id="errorMessage" class="error-message" hidden></p>
@@ -176,9 +175,10 @@
                         <tr>
                             <th>Report ID</th>
                             <th>Machine</th>
+                            <th>Reported By</th>
                             <th>Date Reported</th>
                             <th>Problem</th>
-                            <th>Assigned Technician</th>
+                            <th>Technician Assignment</th>
                             <th>Status</th>
                             <th>Action</th>
                         </tr>
@@ -239,7 +239,7 @@
                 </div>
 
                 <div class="detail-field">
-                    <strong>Assigned Technician</strong>
+                    <strong>Technician Assignment</strong>
                     <p id="detailTechnician">-</p>
                 </div>
 

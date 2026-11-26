@@ -11,7 +11,7 @@ const reportDialog = document.getElementById("reportDialog");
 const reportDialogTitle = document.getElementById("reportDialogTitle");
 const reportDialogStatus = document.getElementById("reportDialogStatus");
 const reportDetails = document.getElementById("reportDetails");
-const notificationRoles = ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR", "PRODUCTION_MANAGER"];
+const notificationRoles = ["MAINTENANCE_SUPERVISOR", "SYSTEM_ADMINISTRATOR", "PRODUCTION_WORKER", "PRODUCTION_SUPERVISOR"];
 
 async function readJsonResponse(response) {
     if (response.status === 204) {
@@ -143,7 +143,10 @@ function renderReportDetails(details) {
     addReportField(fields, "Status", fault.status);
     addReportField(fields, "Reported by", fault.reporterName);
     addReportField(fields, "Submitted", new Date(fault.submittedAt).toLocaleString());
-    addReportField(fields, "Assigned technician", fault.technicianName || "Unassigned");
+    const assignment = fault.technicianName === "Assigned"
+        ? "A technician has been assigned"
+        : fault.technicianName || "Unassigned";
+    addReportField(fields, "Technician assignment", assignment);
     reportDetails.append(fields);
 
     const description = document.createElement("section");
