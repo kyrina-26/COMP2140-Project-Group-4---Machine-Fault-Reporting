@@ -1,0 +1,173 @@
+.assignment-page {
+    width: min(100% - 48px, 1250px);
+    margin: 38px auto;
+}
+
+.assignment-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.assignment-heading h2 {
+    margin: 0 0 8px;
+    color: var(--app-green, #087443);
+    font-size: 28px;
+}
+
+.assignment-heading p:last-child,
+.panel-heading p {
+    margin: 0;
+    color: #707070;
+    line-height: 1.5;
+}
+
+.eyebrow {
+    margin: 0 0 8px;
+    color: var(--app-dark-orange, #d66c12);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.2px;
+}
+
+.refresh-button,
+.assign-button {
+    border: 0;
+    border-radius: 7px;
+    background: var(--app-green, #087443);
+    color: #fff;
+    font: inherit;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.refresh-button {
+    flex: 0 0 auto;
+    padding: 12px 18px;
+}
+
+.assign-button {
+    padding: 10px 14px;
+}
+
+.refresh-button:hover:not(:disabled),
+.assign-button:hover:not(:disabled) {
+    background: var(--app-dark-green, #065c35);
+}
+
+.refresh-button:disabled,
+.assign-button:disabled {
+    cursor: wait;
+    opacity: 0.6;
+}
+
+.assignment-message {
+    min-height: 24px;
+    margin: 0 0 12px;
+    color: #555;
+}
+
+.assignment-panel {
+    overflow: hidden;
+    border: 1px solid #dce9df;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+}
+
+.panel-heading {
+    padding: 22px 26px;
+    border-bottom: 1px solid #e6eee8;
+}
+
+.panel-heading h3 {
+    margin: 0 0 7px;
+    color: var(--app-green, #087443);
+    font-size: 19px;
+}
+
+.panel-heading p {
+    font-size: 13px;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.assignment-panel table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.assignment-panel th,
+.assignment-panel td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e6eee8;
+    vertical-align: middle;
+}
+
+.assignment-panel th {
+    background: #f7faf7;
+    color: var(--app-green, #087443);
+    font-size: 13px;
+    white-space: nowrap;
+}
+
+.assignment-panel td {
+    font-size: 14px;
+}
+
+.fault-description {
+    max-width: 320px;
+    min-width: 190px;
+}
+
+.assignment-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 250px;
+}
+
+.assignment-controls select {
+    min-width: 140px;
+    min-height: 40px;
+    padding: 8px 10px;
+    border: 1px solid #cbdccf;
+    border-radius: 7px;
+    background: #fff;
+    color: #333;
+    font: inherit;
+}
+
+.assignment-controls select:focus,
+.assign-button:focus-visible,
+.refresh-button:focus-visible {
+    outline: 2px solid var(--app-orange, #f28c28);
+    outline-offset: 2px;
+}
+
+.assignment-empty {
+    padding: 24px;
+    color: #707070;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .assignment-page {
+        width: min(100% - 28px, 1250px);
+        margin: 24px auto;
+    }
+
+    .assignment-heading {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .refresh-button {
+        align-self: flex-start;
+    }
+}

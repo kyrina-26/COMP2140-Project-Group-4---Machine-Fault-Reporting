@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Technicians</title>
+</head>
+<body>
+    <main class="assignment-page">
+        <section class="assignment-heading">
+            <div>
+                <p class="eyebrow">MAINTENANCE TEAM</p>
+                <h2>Assign Technicians</h2>
+                <p>Assign reported faults to a maintenance technician who is signed in.</p>
+            </div>
+            <button type="button" class="refresh-button" id="refreshAssignments">Refresh reports</button>
+        </section>
+
+        <p id="assignmentMessage" class="assignment-message" role="status" aria-live="polite"></p>
+
+        <section class="assignment-panel" aria-labelledby="assignmentListTitle">
+            <div class="panel-heading">
+                <h3 id="assignmentListTitle">Reports awaiting assignment</h3>
+                <p>Reported faults and existing assignments that can be reassigned are shown here.</p>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Report</th>
+                            <th>Machine</th>
+                            <th>Fault</th>
+                            <th>Status</th>
+                            <th>Current technician</th>
+                            <th>Assign technician</th>
+                        </tr>
+                    </thead>
+                    <tbody id="assignmentRows"></tbody>
+                </table>
+            </div>
+            <p id="assignmentEmpty" class="assignment-empty" hidden>No reported or assigned faults need technician assignment.</p>
+        </section>
+    </main>
+</body>
+</html>

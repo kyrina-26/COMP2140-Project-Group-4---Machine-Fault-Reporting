@@ -17,6 +17,12 @@ const routeTable = {
         module: "/maintenance-dashboard/fault-history.js",
         roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"]
     },
+    "/maintenance-dashboard/assign-technicians.html": {
+        title: "Assign Technicians",
+        style: "/maintenance-dashboard/assign-technicians.css",
+        module: "/maintenance-dashboard/assign-technicians.js",
+        roles: ["MAINTENANCE_SUPERVISOR", "MAINTENANCE_MANAGER", "SYSTEM_ADMINISTRATOR"]
+    },
     "/maintenance-dashboard/production-reports.html": {
         title: "Production Report Tracking",
         style: "/maintenance-dashboard/production-reports.css",
@@ -48,6 +54,7 @@ const navigationItems = [
     ["/fault-report/fault-report.html", "Fault Reporting"],
     ["/maintenance-dashboard/technician-work.html", "Technician Work"],
     ["/maintenance-dashboard/fault-history.html", "Fault History"],
+    ["/maintenance-dashboard/assign-technicians.html", "Assign Technicians"],
     ["/maintenance-dashboard/production-reports.html", "Production Reports"],
     ["/maintenance-dashboard/machine-management.html", "Machine Management"],
     ["/maintenance-dashboard/maintenance-user.html", "User Management"]
