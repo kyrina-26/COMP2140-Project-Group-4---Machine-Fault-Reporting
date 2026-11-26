@@ -36,7 +36,7 @@ services:
     depends_on:
       - api
     networks:
-      - nginx_proxy
+      - reverse_proxy
       - app_internal
     restart: unless-stopped
 
@@ -78,11 +78,11 @@ volumes:
     name: machine_fault_mysql_data
 
 networks:
-  # NPM reaches only the frontend through this pre-existing external network.
-  nginx_proxy:
-    name: nginx_proxy
+  # Connect only the frontend to the existing reverse proxy network.
+  reverse_proxy:
+    name: ${REVERSE_PROXY_NETWORK}
     external: true
-  # Keep app and database traffic isolated from the public proxy network.
+  # Keep app and database traffic isolated from the reverse proxy network.
   app_internal:
     name: machine_fault_internal
     internal: true
